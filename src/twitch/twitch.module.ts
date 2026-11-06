@@ -1,9 +1,10 @@
 import { Module } from '@nestjs/common';
 import { TwitchController } from './twitch.controller.js';
 import { TwitchService } from './twitch.service.js';
-import { TwitchApiClient } from './twitch-api.client.js';
 import { TwitchEventSubService } from './twitch-eventsub.service.js';
-import { TwitchAuthenticatedClient } from './twitch-authenticated.client.js';
+import { TwitchConnectorService } from './twitch-connector.service.js';
+import { TwitchOAuthClient } from './twitch-oauth.client.js';
+import { TwitchTokenStore } from './twitch-token.store.js';
 import { TwitchEventNormalizer } from './twitch-event-normalizer.service.js';
 import { StreamsModule } from '../streams/streams.module.js';
 import { EventsModule } from '../events/events.module.js';
@@ -21,14 +22,13 @@ import { TwitchCommandRegistration } from './twitch-command-registration.service
 import { ChatOverlayModule } from '../chat-overlay/chat-overlay.module.js';
 
 @Module({
-  controllers: [
-    TwitchController,
-  ],
+  controllers: [TwitchController],
   providers: [
     TwitchService,
-    TwitchApiClient,
+    TwitchOAuthClient,
+    TwitchConnectorService,
+    TwitchTokenStore,
     TwitchEventSubService,
-    TwitchAuthenticatedClient,
     TwitchEventNormalizer,
     TwitchEventIngestionService,
     TwitchOAuthStateService,
@@ -44,8 +44,6 @@ import { ChatOverlayModule } from '../chat-overlay/chat-overlay.module.js';
     FirstOverlayModule,
     ChatOverlayModule,
   ],
-  exports: [
-    TwitchService,
-  ],
+  exports: [TwitchService],
 })
-export class TwitchModule { }
+export class TwitchModule {}
