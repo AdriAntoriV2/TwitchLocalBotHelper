@@ -4,8 +4,7 @@ setlocal
 set "PROJECT_DIR=D:\Work\Portfolio\streamops"
 set "OBS_EXE=C:\Program Files\obs-studio\bin\64bit\obs64.exe"
 set "VEADOTUBE_EXE=D:\Stream\veadotube-mini-win-x64\veadotube-mini.exe"
-set "SONG_REQUEST_EXE=D:\Work\Portfolio\CypherTwitchSongRequest\release\CypherTwitchSongRequest.exe"
-set "PORT=6769"
+set "PORT=3000"
 set "LOG=%PROJECT_DIR%\start-streamops.log"
 
 echo.
@@ -30,10 +29,12 @@ if exist "%VEADOTUBE_EXE%" (
     if errorlevel 1 (
         echo WARNING: veadotube mini failed to launch.
         echo Check the executable path and error output.
+        echo [%date% %time%] WARNING: veadotube launch failed >> "%LOG%"
     )
 ) else (
     echo WARNING: veadotube mini was not found:
     echo %VEADOTUBE_EXE%
+    echo [%date% %time%] WARNING: veadotube executable missing >> "%LOG%"
 )
 
 echo Starting StreamOps...
@@ -50,7 +51,7 @@ for /L %%i in (1,1,90) do (
 
 echo ERROR: StreamOps did not start within 90 seconds.
 echo Check the StreamOps terminal.
-echo Startup timeout >> "%LOG%"
+echo [%date% %time%] Startup timeout >> "%LOG%"
 goto :fail
 
 :ready
@@ -58,48 +59,19 @@ echo StreamOps port is responding.
 echo [%date% %time%] StreamOps port ready >> "%LOG%"
 
 echo.
-echo Starting standalone !sr module...
-
-if not exist "%SONG_REQUEST_EXE%" (
-    echo WARNING: Standalone !sr module was not found:
-    echo %SONG_REQUEST_EXE%
-    echo [%date% %time%] WARNING: !sr executable missing >> "%LOG%"
-) else (
-    for %%I in ("%SONG_REQUEST_EXE%") do set "SONG_REQUEST_DIR=%%~dpI"
-
-    echo !sr executable: %SONG_REQUEST_EXE%
-    echo !sr directory: %SONG_REQUEST_DIR%
-    echo [%date% %time%] Starting standalone !sr module >> "%LOG%"
-
-    powershell -NoProfile -Command "try { Start-Process -FilePath $env:SONG_REQUEST_EXE -WorkingDirectory $env:SONG_REQUEST_DIR -ErrorAction Stop; Write-Output '!sr launch request submitted.' } catch { Write-Output ($_ | Out-String); exit 1 }" >> "%LOG%" 2>&1
-
-    if errorlevel 1 (
-        echo WARNING: Standalone !sr module failed to launch.
-        echo Check the log:
-        echo %LOG%
-        echo [%date% %time%] WARNING: !sr launch failed >> "%LOG%"
-    ) else (
-        echo Standalone !sr module started.
-        echo [%date% %time%] Standalone !sr module started >> "%LOG%"
-    )
-)
-
-echo.
 if not exist "%OBS_EXE%" (
     echo ERROR: OBS executable not found:
     echo %OBS_EXE%
-    echo OBS executable missing >> "%LOG%"
+    echo [%date% %time%] ERROR: OBS executable missing >> "%LOG%"
     goto :fail
 )
 
 for %%I in ("%OBS_EXE%") do set "OBS_DIR=%%~dpI"
 
 echo Starting OBS as administrator...
-echo OBS path: %OBS_EXE%
-echo OBS directory: %OBS_DIR%
-echo Launching elevated OBS... >> "%LOG%"
+echo [%date% %time%] Launching elevated OBS >> "%LOG%"
 
-powershell -NoProfile -Command "$ErrorActionPreference = 'Stop'; try { Start-Process -FilePath $env:OBS_EXE -WorkingDirectory $env:OBS_DIR -Verb RunAs -ErrorAction Stop; Write-Output 'OBS launch request submitted.' } catch { Write-Output ($_ | Out-String); exit 1 }" >> "%LOG%" 2>&1
+powershell -NoProfile -Command "$ErrorActionPreference = 'Stop'; try { Start-Process -FilePath $env:OBS_EXE -WorkingDirectory $env:OBS_DIR -Verb RunAs -ErrorAction Stop; exit 0 } catch { Write-Output ($_ | Out-String); exit 1 }" >> "%LOG%" 2>&1
 
 if errorlevel 1 (
     echo.
@@ -109,18 +81,22 @@ if errorlevel 1 (
 )
 
 echo OBS launch request submitted.
+echo [%date% %time%] OBS launch request submitted >> "%LOG%"
+
 echo.
-echo Launcher finished.
-echo StreamOps remains in its own terminal.
-echo Standalone !sr module is running independently.
-goto :end
+echo All applications launched successfully.
+echo [%date% %time%] Launcher finished successfully >> "%LOG%"
+echo Closing launcher...
+
+endlocal
+exit /b 0
 
 :fail
 echo.
 echo Launcher encountered an error.
 echo See: %LOG%
-
-:end
+echo [%date% %time%] Launcher failed >> "%LOG%"
 echo.
 pause
 endlocal
+exit /b 1

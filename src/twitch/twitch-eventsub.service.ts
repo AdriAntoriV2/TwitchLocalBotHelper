@@ -1,38 +1,33 @@
-import {
-  Injectable,
-  Logger,
-  OnModuleDestroy,
-} from '@nestjs/common';
-import WebSocket from 'ws';
-import { TwitchApiClient } from './twitch-api.client.js';
-import {
-  TwitchEventSubMessage,
-  TwitchSession,
-} from './types/twitch-eventsub.types.js';
-import { EventsService } from '../events/events.service.js';
+import { Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
+import type { EventSubEnvelope } from 'streamops-twitch-connector';
+import { TwitchConnectorService } from './twitch-connector.service.js';
 import { TwitchEventNormalizer } from './twitch-event-normalizer.service.js';
-import { StreamsService } from '../streams/streams.service.js';
 import { TwitchEventIngestionService } from './twitch-event-ingestion.service.js';
+import { StreamsService } from '../streams/streams.service.js';
+import { EventsService } from '../events/events.service.js';
 import { ChatCommandDispatcher } from '../commands/chat-command-dispatcher.service.js';
 import { PointPoolService } from '../point-pool/point-pool.service.js';
 import { FirstOverlayService } from '../first-overlay/first-overlay.service.js';
 import { ChatOverlayService } from '../chat-overlay/chat-overlay.service.js';
 
+interface Subscription {
+  type: string;
+  version: string;
+  condition: Record<string, string>;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
 @Injectable()
-export class TwitchEventSubService
-  implements OnModuleDestroy {
-  private readonly logger =
-    new Logger(TwitchEventSubService.name);
-
-  private socket: WebSocket | null = null;
-  private session: TwitchSession | null = null;
-
-  private accessToken: string | null = null;
-  private broadcasterUserId: string | null = null;
-  prisma: any;
+export class TwitchEventSubService implements OnModuleDestroy {
+  private readonly logger = new Logger(TwitchEventSubService.name);
+  private readonly removeSessionListener: () => void;
+  private readonly removeNotificationListener: () => void;
 
   constructor(
-    private readonly twitchApi: TwitchApiClient,
+    private readonly connector: TwitchConnectorService,
     private readonly streamsService: StreamsService,
     private readonly eventsService: EventsService,
     private readonly normalizer: TwitchEventNormalizer,
@@ -41,344 +36,217 @@ export class TwitchEventSubService
     private readonly pointPoolService: PointPoolService,
     private readonly firstOverlayService: FirstOverlayService,
     private readonly chatOverlayService: ChatOverlayService,
-  ) { }
-
-  async connect(
-    accessToken: string,
-    broadcasterUserId: string,
   ) {
-    this.accessToken = accessToken;
-    this.broadcasterUserId =
-      broadcasterUserId;
+    this.removeSessionListener = this.connector.client.eventSub.onSession(
+      async (sessionId, isReconnectHandover) => {
+        if (isReconnectHandover || !this.connector.isReady) {
+          return;
+        }
 
-    await this.openSocket();
-  }
-
-  private async openSocket(
-    url = 'wss://eventsub.wss.twitch.tv/ws',
-  ): Promise<void> {
-    return new Promise(
-      (resolve, reject) => {
-        const socket =
-          new WebSocket(url);
-
-        this.socket = socket;
-
-        socket.on('open', () => {
-          this.logger.log(
-            'Connected to Twitch EventSub',
-          );
-        });
-
-        socket.on(
-          'message',
-          async (data) => {
-            try {
-              await this.handleMessage(
-                JSON.parse(
-                  data.toString(),
-                ) as TwitchEventSubMessage,
-              );
-
-              resolve();
-            } catch (error) {
-              reject(error);
-            }
-          },
-        );
-
-        socket.on('error', (error) => {
-          this.logger.error(
-            'Twitch EventSub WebSocket error',
-            error,
-          );
-        });
-
-        socket.on('close', () => {
-          this.logger.warn(
-            'Twitch EventSub WebSocket closed',
-          );
-
-          this.socket = null;
-          this.session = null;
-        });
+        await this.handleSession(sessionId);
       },
     );
+
+    this.removeNotificationListener =
+      this.connector.client.eventSub.onNotification(
+        async (type, event, envelope) => {
+          if (!this.connector.isReady) {
+            return;
+          }
+
+          try {
+            await this.handleNotification(type, event, envelope);
+          } catch (error) {
+            const requiresLogin = await this.connector.handleError(error);
+            this.logger.error(
+              `Failed to process Twitch EventSub notification: ${type}`,
+              error instanceof Error ? error.stack : String(error),
+            );
+
+            if (requiresLogin) {
+              return;
+            }
+          }
+        },
+      );
   }
 
-  private async syncCurrentStream(): Promise<void> {
-    if (!this.accessToken || !this.broadcasterUserId) {
-      throw new Error(
-        'Twitch credentials are unavailable',
-      );
-    }
+  async onModuleDestroy(): Promise<void> {
+    this.removeSessionListener();
+    this.removeNotificationListener();
+  }
 
-    const liveStream = await this.twitchApi.getLiveStream(
-      this.accessToken,
-      this.broadcasterUserId,
-    );
+  private async handleSession(sessionId: string): Promise<void> {
+    const broadcasterUserId = this.connector.getBroadcasterUserId();
+    const authenticatedUserId = this.connector.getAuthenticatedUserId();
 
-    if (!liveStream) {
-      this.logger.log(
-        'Twitch channel is currently offline',
-      );
+    if (!broadcasterUserId || !authenticatedUserId) {
       return;
     }
 
-    const activeStream =
-      await this.streamsService.findActive();
+    await this.syncCurrentStream(broadcasterUserId);
 
-    if (activeStream) {
-      this.logger.log(
-        `Active StreamOps stream already exists: ${activeStream.id}`,
-      );
-      return;
-    }
-
-    const stream = await this.streamsService.create({
-      title: liveStream.title,
-      startedAt: liveStream.started_at,
-    });
-
-    this.logger.log(
-      `Recovered active StreamOps stream for existing Twitch broadcast: ${stream.id}`,
-    );
-  }
-
-  private async handleMessage(
-    message: TwitchEventSubMessage,
-  ) {
-    switch (
-    message.metadata.message_type
-    ) {
-      case 'session_welcome':
-        await this.handleWelcome(
-          message.payload,
-        );
-        return;
-
-      case 'session_keepalive':
-        return;
-
-      case 'notification':
-        await this.handleNotification(
-          message,
-        );
-        return;
-
-      case 'session_reconnect':
-        await this.handleReconnect(
-          message.payload,
-        );
-        return;
-
-      case 'revocation':
-        this.logger.warn(
-          'Twitch EventSub subscription revoked',
-        );
-        return;
-
-      default:
-        this.logger.debug(
-          `Unknown Twitch EventSub message: ${message.metadata.message_type}`,
-        );
-    }
-  }
-
-  private async handleWelcome(
-    payload: Record<string, unknown>,
-  ) {
-    const session =
-      payload.session as TwitchSession;
-
-    this.session = session;
-
-    this.logger.log(
-      `Twitch EventSub session established: ${session.id}`,
-    );
-
-    try {
-      await this.syncCurrentStream();
-    } catch (error) {
-      this.logger.error(
-        'Failed to sync current Twitch stream',
-        error instanceof Error
-          ? error.stack
-          : String(error),
-      );
-    }
-
-    await this.subscribe();
-  }
-
-  private async subscribe() {
-    if (
-      !this.accessToken ||
-      !this.broadcasterUserId ||
-      !this.session
-    ) {
-      throw new Error(
-        'Twitch EventSub is not ready for subscription',
-      );
-    }
-
-    const subscriptions: {
-      type: string;
-      version: string;
-      condition: Record<string, string>;
-    }[] = [
-        {
-          type: 'stream.online',
-          version: '1',
-          condition: {
-            broadcaster_user_id:
-              this.broadcasterUserId,
-          },
+    const subscriptions: Subscription[] = [
+      {
+        type: 'stream.online',
+        version: '1',
+        condition: { broadcaster_user_id: broadcasterUserId },
+      },
+      {
+        type: 'stream.offline',
+        version: '1',
+        condition: { broadcaster_user_id: broadcasterUserId },
+      },
+      {
+        type: 'channel.follow',
+        version: '2',
+        condition: {
+          broadcaster_user_id: broadcasterUserId,
+          moderator_user_id: broadcasterUserId,
         },
-        {
-          type: 'stream.offline',
-          version: '1',
-          condition: {
-            broadcaster_user_id:
-              this.broadcasterUserId,
-          },
+      },
+      {
+        type: 'channel.subscribe',
+        version: '1',
+        condition: { broadcaster_user_id: broadcasterUserId },
+      },
+      {
+        type: 'channel.cheer',
+        version: '1',
+        condition: { broadcaster_user_id: broadcasterUserId },
+      },
+      {
+        type: 'channel.channel_points_custom_reward_redemption.add',
+        version: '1',
+        condition: { broadcaster_user_id: broadcasterUserId },
+      },
+      {
+        type: 'channel.chat.message',
+        version: '1',
+        condition: {
+          broadcaster_user_id: broadcasterUserId,
+          user_id: authenticatedUserId,
         },
-        {
-          type: 'channel.follow',
-          version: '2',
-          condition: {
-            broadcaster_user_id:
-              this.broadcasterUserId,
-            moderator_user_id:
-              this.broadcasterUserId,
-          },
-        },
-        {
-          type: 'channel.subscribe',
-          version: '1',
-          condition: {
-            broadcaster_user_id:
-              this.broadcasterUserId,
-          },
-        },
-        {
-          type: 'channel.cheer',
-          version: '1',
-          condition: {
-            broadcaster_user_id:
-              this.broadcasterUserId,
-          },
-        },
-        {
-          type:
-            'channel.channel_points_custom_reward_redemption.add',
-          version: '1',
-          condition: {
-            broadcaster_user_id:
-              this.broadcasterUserId,
-          },
-        },
-        {
-          type: 'channel.chat.message',
-          version: '1',
-          condition: {
-            broadcaster_user_id: this.broadcasterUserId,
-            user_id: this.broadcasterUserId,
-          },
-        },
-      ];
+      },
+    ];
 
     for (const subscription of subscriptions) {
+      if (!this.connector.isReady) {
+        return;
+      }
+
       try {
-        const result =
-          await this.twitchApi.createEventSubSubscription(
-            this.accessToken,
-            this.session.id,
-            subscription.type,
-            subscription.version,
-            subscription.condition,
+        const result = await this.connector.client.subscriptions.subscribe(
+          subscription.type,
+          subscription.version,
+          subscription.condition,
+          sessionId,
+        );
+        const status = result.data?.[0]?.status;
+
+        if (status !== 'enabled') {
+          throw new Error(
+            `Twitch returned subscription status "${status ?? 'missing'}".`,
           );
+        }
 
         this.logger.log(
-          `EventSub subscription accepted: ${subscription.type} v${subscription.version}`,
+          `EventSub subscription enabled: ${subscription.type} v${subscription.version}`,
         );
       } catch (error) {
+        const requiresLogin = await this.connector.handleError(error);
         this.logger.error(
           `EventSub subscription failed: ${subscription.type} v${subscription.version}`,
-          error instanceof Error
-            ? error.message
-            : String(error),
+          error instanceof Error ? error.stack : String(error),
         );
+
+        if (requiresLogin) {
+          return;
+        }
+      }
+    }
+  }
+
+  private async syncCurrentStream(broadcasterUserId: string): Promise<void> {
+    try {
+      const params = new URLSearchParams({ user_id: broadcasterUserId });
+      const response = await this.connector.client.api.get<{
+        data: Array<{ title: string; started_at: string }>;
+      }>(`/streams?${params.toString()}`);
+      const liveStream = response.data[0];
+
+      if (!liveStream) {
+        this.logger.log('Twitch channel is currently offline.');
+        return;
+      }
+
+      const activeStream = await this.streamsService.findActive();
+
+      if (activeStream) {
+        this.logger.log(
+          `Active StreamOps stream already exists: ${activeStream.id}`,
+        );
+        return;
+      }
+
+      const stream = await this.streamsService.create({
+        title: liveStream.title,
+        startedAt: liveStream.started_at,
+      });
+
+      this.logger.log(
+        `Recovered active StreamOps stream for existing Twitch broadcast: ${stream.id}`,
+      );
+    } catch (error) {
+      const requiresLogin = await this.connector.handleError(error);
+      this.logger.error(
+        'Failed to sync the current Twitch stream.',
+        error instanceof Error ? error.stack : String(error),
+      );
+
+      if (!requiresLogin) {
+        return;
       }
     }
   }
 
   private async handleNotification(
-    message: TwitchEventSubMessage,
-  ) {
-    const subscription =
-      message.payload.subscription as
-      | Record<string, unknown>
-      | undefined;
-
-    const event =
-      message.payload.event as
-      | Record<string, unknown>
-      | undefined;
-
-    if (!subscription || !event) {
-      throw new Error(
-        'Invalid Twitch EventSub notification payload',
-      );
+    subscriptionType: string,
+    event: unknown,
+    envelope: EventSubEnvelope,
+  ): Promise<void> {
+    if (!isRecord(event) || !envelope.metadata.message_id) {
+      throw new Error('Invalid Twitch EventSub notification payload.');
     }
 
-    const subscriptionType =
-      subscription.type;
+    const normalized = this.normalizer.normalize(
+      envelope.metadata.message_id,
+      subscriptionType,
+      event,
+    );
 
-    // this.logger.debug(
-    //   `EventSub notification received: ${String(subscriptionType)}`,
-    // );
-
-    const normalized =
-      this.normalizer.normalize(
-        message.metadata.message_id,
-        subscriptionType as string,
-        event,
-      );
     if (subscriptionType === 'channel.chat.message') {
       await this.chatOverlayService.addMessage(
-        event,
+        normalized.payload,
         normalized.externalId,
       );
     }
-    if (
-      subscriptionType ===
-      'stream.online'
-    ) {
-      await this.handleStreamOnline(
-        normalized,
-      );
 
+    if (subscriptionType === 'stream.online') {
+      await this.handleStreamOnline(normalized);
+      return;
+    }
+
+    if (subscriptionType === 'stream.offline') {
+      await this.handleStreamOffline(normalized);
       return;
     }
 
     if (
-      subscriptionType ===
-      'stream.offline'
+      subscriptionType === 'channel.channel_points_custom_reward_redemption.add'
     ) {
-      await this.handleStreamOffline(
-        normalized,
-      );
-
-      return;
-    }
-
-    if (
-      subscriptionType ===
-      'channel.channel_points_custom_reward_redemption.add'
-    ) {
-      await this.firstOverlayService.recordRedemption(event);
-      await this.pointPoolService.recordRedemption(event);
+      await this.firstOverlayService.recordRedemption(normalized.payload);
+      await this.pointPoolService.recordRedemption(normalized.payload);
     }
 
     const ingested = await this.ingestionService.ingest(
@@ -387,93 +255,59 @@ export class TwitchEventSubService
       normalized.payload,
     );
 
-    if (subscriptionType === 'channel.chat.message') {
-      // this.logger.log(
-      //   `Chat message received; ingestion result: ${ingested ? 'accepted' : 'ignored'}`,
-      // );
-
-      if (ingested) {
-        const reply =
-          await this.chatCommandDispatcher.dispatch(
-            normalized.payload,
-            ingested.streamId,
-          );
-
-        // this.logger.log(
-        //   `Chat command dispatch completed; reply: ${reply ? 'generated' : 'none'}`,
-        // );
-
-        if (reply && this.accessToken && this.broadcasterUserId) {
-          await this.twitchApi.sendChatMessage(
-            this.accessToken,
-            this.broadcasterUserId,
-            this.broadcasterUserId,
-            reply,
-          );
-        }
-      }
-
+    if (subscriptionType !== 'channel.chat.message' || !ingested) {
+      return;
     }
-  }
 
-  private async handleReconnect(
-    payload: Record<string, unknown>,
-  ) {
-    const session =
-      payload.session as TwitchSession;
+    const reply = await this.chatCommandDispatcher.dispatch(
+      normalized.payload,
+      ingested.streamId,
+    );
 
-    if (!session.reconnect_url) {
+    if (!reply || !this.connector.isReady) {
+      return;
+    }
+
+    const broadcasterUserId = this.connector.getBroadcasterUserId();
+    const senderId = this.connector.getAuthenticatedUserId();
+
+    if (!broadcasterUserId || !senderId) {
+      return;
+    }
+
+    const result = await this.connector.client.chat.sendMessage({
+      broadcasterId: broadcasterUserId,
+      senderId,
+      message: reply,
+    });
+
+    if (!result.isSent) {
       throw new Error(
-        'Twitch requested reconnect without a reconnect URL',
+        `Twitch rejected the chat message: ${result.dropReason ?? 'unknown reason'}`,
       );
     }
-
-    this.logger.log(
-      'Reconnecting Twitch EventSub WebSocket',
-    );
-
-    this.socket?.close();
-
-    await this.openSocket(
-      session.reconnect_url,
-    );
   }
 
-  async onModuleDestroy() {
-    this.socket?.close();
-  }
-
-  private async handleStreamOnline(
-    event: {
-      type: string;
-      externalId: string;
-      payload: Record<string, unknown>;
-    },
-  ) {
-    const broadcasterUserId =
-      event.payload.broadcaster_user_id;
-
-    const broadcasterUserName =
-      event.payload.broadcaster_user_name;
-
-    const startedAt =
-      event.payload.started_at;
+  private async handleStreamOnline(event: {
+    type: string;
+    externalId: string;
+    payload: Record<string, unknown>;
+  }): Promise<void> {
+    const broadcasterUserName = event.payload.broadcaster_user_name;
+    const startedAt = event.payload.started_at;
 
     if (
-      typeof broadcasterUserId !== 'string' ||
+      typeof event.payload.broadcaster_user_id !== 'string' ||
       typeof broadcasterUserName !== 'string' ||
       typeof startedAt !== 'string'
     ) {
-      throw new Error(
-        'Invalid Twitch stream.online payload',
-      );
+      throw new Error('Invalid Twitch stream.online payload.');
     }
 
-    const stream =
-      await this.streamsService.create({
-        title: broadcasterUserName,
-        startedAt,
-      });
+    const stream = await this.streamsService.create({
+      title: broadcasterUserName,
+      startedAt,
+    });
 
     await this.eventsService.create({
       streamId: stream.id,
@@ -483,40 +317,16 @@ export class TwitchEventSubService
     });
   }
 
-  async findActive() {
-    return this.prisma.stream.findFirst({
-      where: {
-        endedAt: null,
-      },
-      orderBy: {
-        startedAt: 'desc',
-      },
-    });
-  }
-
-  async end(
-    id: string,
-    endedAt = new Date(),
-  ) {
-    return this.prisma.stream.update({
-      where: { id },
-      data: { endedAt },
-    });
-  }
-
-  private async handleStreamOffline(
-    event: {
-      type: string;
-      externalId: string;
-      payload: Record<string, unknown>;
-    },
-  ) {
-    const stream =
-      await this.streamsService.findActive();
+  private async handleStreamOffline(event: {
+    type: string;
+    externalId: string;
+    payload: Record<string, unknown>;
+  }): Promise<void> {
+    const stream = await this.streamsService.findActive();
 
     if (!stream) {
       throw new Error(
-        'Received Twitch stream.offline without an active StreamOps stream',
+        'Received Twitch stream.offline without an active StreamOps stream.',
       );
     }
 
@@ -527,8 +337,6 @@ export class TwitchEventSubService
       payload: event.payload,
     });
 
-    await this.streamsService.end(
-      stream.id,
-    );
+    await this.streamsService.end(stream.id);
   }
 }

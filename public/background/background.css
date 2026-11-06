@@ -7,8 +7,8 @@
   --canvas-height: 1080px;
   --game-width: 1050px;
   --game-height: 700px;
-  --handcam-width: 370px;
-  --handcam-height: 210px;
+  --handcam-width: 481px;
+  --handcam-height: 273px;
 
   /* Project Sekai unit colours */
   --leo: #4455dd;     /* Leo/need */
@@ -139,7 +139,7 @@ body {
 }
 
 .handcam-frame {
-  left: calc(var(--left) + var(--game-width) + var(--column-gap));
+  left: calc(var(--left) + var(--game-width) + var(--column-gap) - 800px);
   bottom: var(--bottom);
   width: var(--handcam-width);
   height: var(--handcam-height);
