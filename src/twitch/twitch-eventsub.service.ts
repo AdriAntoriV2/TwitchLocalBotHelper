@@ -149,10 +149,6 @@ export class TwitchEventSubService implements OnModuleDestroy {
             `Twitch returned subscription status "${status ?? 'missing'}".`,
           );
         }
-
-        this.logger.log(
-          `EventSub subscription enabled: ${subscription.type} v${subscription.version}`,
-        );
       } catch (error) {
         const requiresLogin = await this.connector.handleError(error);
         this.logger.error(
