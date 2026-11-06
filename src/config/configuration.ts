@@ -1,5 +1,5 @@
 export default () => {
-  const configuredPort = Number(process.env.PORT ?? 3000);
+  const configuredPort = Number(process.env.PORT ?? 6769);
   const redirectUri =
     process.env.TWITCH_REDIRECT_URI ??
     `http://localhost:${configuredPort}/api/twitch/oauth/callback`;
