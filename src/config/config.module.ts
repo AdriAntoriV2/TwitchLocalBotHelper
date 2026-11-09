@@ -25,24 +25,14 @@ import configuration from './configuration.js';
         */
 
         TWITCH_CLIENT_ID: Joi.string().required(),
-        TWITCH_CLIENT_SECRET: Joi.string().required(),
-        TWITCH_REDIRECT_URI: Joi.string().uri().required(),
-        TWITCH_TOKEN_ENCRYPTION_KEY:
-          Joi.string()
-            .pattern(/^[0-9a-fA-F]{64}$/)
-            .required(),
-        TWITCH_ADMIN_USER_ID: Joi.string()
-          .pattern(/^\d+$/)
+        TWITCH_TOKEN_ENCRYPTION_KEY: Joi.string()
+          .pattern(/^[0-9a-fA-F]{64}$/)
           .required(),
+        TWITCH_ADMIN_USER_ID: Joi.string().pattern(/^\d+$/).required(),
 
-        SESSION_SECRET: Joi.string()
-          .min(32)
-          .required(),
+        SESSION_SECRET: Joi.string().min(32).required(),
 
-        SONG_REQUEST_QUEUE_LIMIT: Joi.number()
-          .integer()
-          .min(1)
-          .default(10),
+        SONG_REQUEST_QUEUE_LIMIT: Joi.number().integer().min(1).default(10),
 
         MPV_PATH: Joi.string().default('mpv'),
 
@@ -53,10 +43,7 @@ import configuration from './configuration.js';
         ),
         RADIO_URL: Joi.string().uri().optional(),
 
-        CHAT_OVERLAY_MAX_MESSAGES: Joi.number()
-          .integer()
-          .min(1)
-          .default(30),
+        CHAT_OVERLAY_MAX_MESSAGES: Joi.number().integer().min(1).default(30),
 
         CHAT_OVERLAY_MESSAGE_TTL_SECONDS: Joi.number()
           .integer()
@@ -67,4 +54,4 @@ import configuration from './configuration.js';
   ],
   exports: [ConfigModule],
 })
-export class AppConfigModule { }
+export class AppConfigModule {}

@@ -172,7 +172,7 @@ export class TwitchEventSubService implements OnModuleDestroy {
       const liveStream = response.data[0];
 
       if (!liveStream) {
-        this.logger.log('Twitch channel is currently offline.');
+        this.logger.debug('Twitch channel is currently offline.');
         return;
       }
 

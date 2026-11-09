@@ -10,7 +10,6 @@ import {
   TwitchError,
   type TwitchValidatedToken,
 } from 'streamops-twitch-connector';
-import { TwitchOAuthClient } from './twitch-oauth.client.js';
 import { TwitchTokenStore } from './twitch-token.store.js';
 
 type TwitchConnectionState = 'login-required' | 'ready';
@@ -19,22 +18,15 @@ type TwitchConnectionState = 'login-required' | 'ready';
 export class TwitchConnectorService implements OnModuleDestroy {
   private readonly logger = new Logger(TwitchConnectorService.name);
   readonly client: TwitchClient;
-  private readonly loginUrl: string;
   private state: TwitchConnectionState = 'login-required';
   private loginNoticeShown = false;
   private broadcasterUserId: string | null = null;
   private authenticatedUserId: string | null = null;
   private readonly removeAuthErrorListener: () => void;
 
-  constructor(
-    config: ConfigService,
-    tokenStore: TwitchTokenStore,
-    oauth: TwitchOAuthClient,
-  ) {
-    this.loginUrl = oauth.getLoginUrl();
+  constructor(config: ConfigService, tokenStore: TwitchTokenStore) {
     this.client = new TwitchClient({
       clientId: config.getOrThrow<string>('twitch.clientId'),
-      clientSecret: config.getOrThrow<string>('twitch.clientSecret'),
       scopes: config.getOrThrow<string[]>('twitch.scopes'),
       tokenStore,
     });
@@ -93,7 +85,7 @@ export class TwitchConnectorService implements OnModuleDestroy {
   async ensureAuthorized(): Promise<void> {
     if (!this.isReady) {
       throw new ServiceUnavailableException(
-        'Twitch authorization is required. Open the login URL shown in the server console.',
+        'Twitch authorization is required. Start device login with GET /api/twitch/oauth.',
       );
     }
   }
@@ -172,7 +164,7 @@ export class TwitchConnectorService implements OnModuleDestroy {
     this.logger.error(
       [
         'Twitch login is required. Twitch processing is paused.',
-        `Please log in again at ${this.loginUrl}`,
+        'Start device authorization with GET /api/twitch/oauth.',
         'After authorization completes, StreamOps will reconnect automatically.',
         error instanceof Error ? `Reason: ${error.message}` : '',
       ]

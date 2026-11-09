@@ -1,26 +1,11 @@
 export default () => {
   const configuredPort = Number(process.env.PORT ?? 6769);
-  const redirectUri =
-    process.env.TWITCH_REDIRECT_URI ??
-    `http://localhost:${configuredPort}/api/twitch/oauth/callback`;
-  const callbackUrl = new URL(redirectUri);
-  const isLoopback =
-    callbackUrl.hostname === 'localhost' ||
-    callbackUrl.hostname === '127.0.0.1' ||
-    callbackUrl.hostname === '::1';
-  const callbackPort = Number(
-    callbackUrl.port || (callbackUrl.protocol === 'https:' ? 443 : 80),
-  );
-  const port =
-    isLoopback && callbackPort !== configuredPort
-      ? callbackPort
-      : configuredPort;
 
   return {
     nodeEnv: process.env.NODE_ENV ?? 'development',
 
     server: {
-      port,
+      port: configuredPort,
     },
 
     database: {
@@ -40,8 +25,6 @@ export default () => {
 
     twitch: {
       clientId: process.env.TWITCH_CLIENT_ID,
-      clientSecret: process.env.TWITCH_CLIENT_SECRET,
-      redirectUri,
       tokenEncryptionKey: process.env.TWITCH_TOKEN_ENCRYPTION_KEY,
       scopes: [
         'user:read:chat',
