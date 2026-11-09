@@ -1,15 +1,15 @@
 import {
   BadRequestException,
+  ConflictException,
   Injectable,
   Logger,
+  OnModuleDestroy,
   OnModuleInit,
-  UnauthorizedException,
 } from '@nestjs/common';
 import { PrismaService } from '../database/prisma.service.js';
 import { SecretEncryptionService } from '../common/security/secret-encryption.service.js';
 import { TwitchConnectorService } from './twitch-connector.service.js';
-import { TwitchOAuthClient } from './twitch-oauth.client.js';
-import { TwitchOAuthStateService } from './twitch-oauth-state.service.js';
+import { TwitchTokenStore } from './twitch-token.store.js';
 import type { TwitchShoutoutInfo } from './types/twitch-eventsub.types.js';
 import { ChatOverlayService } from '../chat-overlay/chat-overlay.service.js';
 
@@ -19,7 +19,7 @@ interface TwitchEmote {
   format: string[];
 }
 
-interface TwitchUsersResponse {
+interface TwitchUserResponse {
   data: Array<{
     id: string;
     login: string;
@@ -51,16 +51,28 @@ interface TwitchEmotesResponse {
   };
 }
 
+export interface TwitchDeviceLogin {
+  userCode: string;
+  verificationUri: string;
+  expiresIn: number;
+  interval: number;
+}
+
 @Injectable()
-export class TwitchService implements OnModuleInit {
+export class TwitchService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(TwitchService.name);
+  private loginStatus: 'login-required' | 'pending' | 'connected' | 'failed' =
+    'login-required';
+  private loginError: string | null = null;
+  private loginStarting = false;
+  private loginPromise: Promise<void> | null = null;
+  private loginAbortController: AbortController | null = null;
 
   constructor(
-    private readonly oauth: TwitchOAuthClient,
     private readonly connector: TwitchConnectorService,
     private readonly prisma: PrismaService,
     private readonly encryption: SecretEncryptionService,
-    private readonly oauthState: TwitchOAuthStateService,
+    private readonly tokenStore: TwitchTokenStore,
     private readonly chatOverlay: ChatOverlayService,
   ) {}
 
@@ -83,10 +95,12 @@ export class TwitchService implements OnModuleInit {
     try {
       await this.connector.connect(account.twitchUserId);
       await this.refreshChatEmotes(account.twitchUserId);
+      this.loginStatus = 'connected';
       this.logger.log(
         `Twitch startup reconnection completed for ${account.login}.`,
       );
     } catch (error) {
+      this.loginStatus = 'login-required';
       if (!(await this.connector.handleError(error))) {
         this.logger.error(
           'Twitch startup connection failed; StreamOps remains available for reauthorization.',
@@ -96,71 +110,57 @@ export class TwitchService implements OnModuleInit {
     }
   }
 
-  async getAuthorizationUrl(): Promise<{ url: string; state: string }> {
-    const state = await this.oauthState.create();
-    return {
-      url: this.oauth.getAuthorizationUrl(state),
-      state,
-    };
+  async onModuleDestroy(): Promise<void> {
+    this.loginAbortController?.abort();
+    await this.loginPromise;
   }
 
-  async handleOAuthCallback(code: string, state: string) {
-    if (!code || !state) {
-      throw new BadRequestException('Missing Twitch OAuth code or state');
+  async startDeviceLogin(): Promise<TwitchDeviceLogin> {
+    if (this.loginStarting || this.loginPromise) {
+      throw new ConflictException(
+        'Twitch device login is already in progress.',
+      );
     }
 
-    const validState = await this.oauthState.consume(state);
-
-    if (!validState) {
-      throw new UnauthorizedException('Invalid or expired Twitch OAuth state');
+    if (this.connector.isReady) {
+      throw new ConflictException('Twitch is already connected.');
     }
 
-    const token = await this.oauth.exchangeCode(code);
+    this.loginStarting = true;
+    this.tokenStore.beginLogin();
 
-    if (!token.access_token || !token.refresh_token) {
-      throw new Error('Twitch OAuth did not return access and refresh tokens.');
+    try {
+      const login = await this.connector.client.tokens.startLogin();
+      this.loginStatus = 'pending';
+      this.loginError = null;
+      this.loginAbortController = new AbortController();
+      this.loginPromise = this.completeDeviceLogin(
+        this.loginAbortController.signal,
+      ).finally(() => {
+        this.loginPromise = null;
+        this.loginAbortController = null;
+      });
+
+      return login;
+    } catch (error) {
+      this.tokenStore.cancelLogin();
+      throw error;
+    } finally {
+      this.loginStarting = false;
+    }
+  }
+
+  getDeviceLoginStatus(): {
+    status: 'login-required' | 'pending' | 'connected' | 'failed';
+    error?: string;
+  } {
+    if (this.connector.isReady) {
+      return { status: 'connected' };
     }
 
-    const user = await this.oauth.getUser(token.access_token);
-
-    if (!user) {
-      throw new Error('Twitch OAuth did not return a user.');
-    }
-
-    const account = await this.prisma.twitchAccount.upsert({
-      where: { twitchUserId: user.id },
-      create: {
-        twitchUserId: user.id,
-        login: user.login,
-        displayName: user.display_name,
-        accessTokenEncrypted: this.encryption.encrypt(token.access_token),
-        refreshTokenEncrypted: this.encryption.encrypt(token.refresh_token),
-        accessTokenExpiresAt: new Date(Date.now() + token.expires_in * 1_000),
-        scopes: token.scope,
-      },
-      update: {
-        login: user.login,
-        displayName: user.display_name,
-        accessTokenEncrypted: this.encryption.encrypt(token.access_token),
-        refreshTokenEncrypted: this.encryption.encrypt(token.refresh_token),
-        accessTokenExpiresAt: new Date(Date.now() + token.expires_in * 1_000),
-        scopes: token.scope,
-        connectedAt: new Date(),
-        tokenVersion: { increment: 1 },
-      },
-    });
-
-    await this.connector.connect(account.twitchUserId);
-    await this.refreshChatEmotes(account.twitchUserId);
-
-    return {
-      id: account.id,
-      twitchUserId: account.twitchUserId,
-      login: account.login,
-      displayName: account.displayName,
-      scopes: account.scopes,
-      connectedAt: account.connectedAt,
-    };
+    return this.loginError
+      ? { status: this.loginStatus, error: this.loginError }
+      : { status: this.loginStatus };
   }
 
   async getShoutoutInfo(username: string): Promise<TwitchShoutoutInfo | null> {
@@ -174,7 +174,7 @@ export class TwitchService implements OnModuleInit {
 
     try {
       const userParams = new URLSearchParams({ login });
-      const users = await this.connector.client.api.get<TwitchUsersResponse>(
+      const users = await this.connector.client.api.get<TwitchUserResponse>(
         `/users?${userParams.toString()}`,
       );
       const user = users.data[0];
@@ -297,5 +297,71 @@ export class TwitchService implements OnModuleInit {
     this.logger.log(
       `Loaded ${globalEmotes.length} global and ${channelEmotes.length} channel emotes.`,
     );
+  }
+
+  private async completeDeviceLogin(signal: AbortSignal): Promise<void> {
+    try {
+      await this.connector.client.tokens.completeLogin(signal);
+
+      const response =
+        await this.connector.client.api.get<TwitchUserResponse>('/users');
+      const user = response.data[0];
+
+      if (!user) {
+        throw new Error(
+          'Twitch device login did not return an authenticated user.',
+        );
+      }
+
+      const tokens = await this.tokenStore.load();
+
+      if (!tokens) {
+        throw new Error('Twitch device login completed without saved tokens.');
+      }
+
+      const account = await this.prisma.twitchAccount.upsert({
+        where: { twitchUserId: user.id },
+        create: {
+          twitchUserId: user.id,
+          login: user.login,
+          displayName: user.display_name,
+          accessTokenEncrypted: this.encryption.encrypt(tokens.accessToken),
+          refreshTokenEncrypted: this.encryption.encrypt(tokens.refreshToken),
+          accessTokenExpiresAt: new Date(tokens.expiresAt),
+          scopes: tokens.scopes,
+        },
+        update: {
+          login: user.login,
+          displayName: user.display_name,
+          accessTokenEncrypted: this.encryption.encrypt(tokens.accessToken),
+          refreshTokenEncrypted: this.encryption.encrypt(tokens.refreshToken),
+          accessTokenExpiresAt: new Date(tokens.expiresAt),
+          scopes: tokens.scopes,
+          connectedAt: new Date(),
+          tokenVersion: { increment: 1 },
+        },
+      });
+
+      this.tokenStore.finishLogin();
+      await this.connector.connect(account.twitchUserId);
+      await this.refreshChatEmotes(account.twitchUserId);
+      this.loginStatus = 'connected';
+      this.logger.log(`Twitch device login completed for ${account.login}.`);
+    } catch (error) {
+      this.tokenStore.cancelLogin();
+
+      if (signal.aborted) {
+        return;
+      }
+
+      await this.connector.handleError(error);
+      this.loginStatus = 'failed';
+      this.loginError =
+        'Twitch device login failed. Check the server logs and retry.';
+      this.logger.error(
+        'Twitch device login failed.',
+        error instanceof Error ? error.stack : String(error),
+      );
+    }
   }
 }

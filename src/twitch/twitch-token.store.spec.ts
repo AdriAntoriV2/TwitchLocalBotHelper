@@ -69,10 +69,10 @@ describe('TwitchTokenStore', () => {
     });
   });
 
-  it('fails explicitly instead of saving tokens without an account', async () => {
+  it('stages initial login tokens without overwriting an existing account', async () => {
     const prisma = {
       twitchAccount: {
-        findFirst: vi.fn().mockResolvedValue(null),
+        findFirst: vi.fn().mockResolvedValue(account),
         update: vi.fn(),
       },
     };
@@ -81,17 +81,46 @@ describe('TwitchTokenStore', () => {
       prisma as unknown as PrismaService,
       encryption as unknown as SecretEncryptionService,
     );
+    const tokens = {
+      accessToken: 'login-access',
+      refreshToken: 'login-refresh',
+      expiresAt: Date.now() + 60_000,
+      scopes: ['user:read:chat'],
+    };
 
-    await expect(
-      store.save({
-        accessToken: 'access',
-        refreshToken: 'refresh',
-        expiresAt: Date.now(),
-        scopes: [],
-      }),
-    ).rejects.toThrow(
-      'Cannot save Twitch tokens before a Twitch account is connected.',
-    );
+    store.beginLogin();
+    await store.save(tokens);
+
+    await expect(store.load()).resolves.toEqual(tokens);
     expect(prisma.twitchAccount.update).not.toHaveBeenCalled();
+
+    store.finishLogin();
+    await store.save(tokens);
+    expect(prisma.twitchAccount.update).toHaveBeenCalledOnce();
+  });
+
+  it('stages device-login tokens before an account exists', async () => {
+    const prisma = {
+      twitchAccount: {
+        findFirst: vi.fn().mockResolvedValue(null),
+        update: vi.fn(),
+      },
+    };
+    const store = new TwitchTokenStore(
+      prisma as unknown as PrismaService,
+      { encrypt: (value: string) => value } as SecretEncryptionService,
+    );
+    const tokens = {
+      accessToken: 'access',
+      refreshToken: 'refresh',
+      expiresAt: Date.now() + 60_000,
+      scopes: [],
+    };
+
+    store.beginLogin();
+    await store.save(tokens);
+
+    await expect(store.load()).resolves.toEqual(tokens);
+    expect(prisma.twitchAccount.findFirst).not.toHaveBeenCalled();
   });
 });

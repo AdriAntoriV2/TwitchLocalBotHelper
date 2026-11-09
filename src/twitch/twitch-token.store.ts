@@ -8,12 +8,34 @@ import { SecretEncryptionService } from '../common/security/secret-encryption.se
 
 @Injectable()
 export class TwitchTokenStore implements ConnectorTokenStore {
+  private loginTokens: TwitchTokens | null = null;
+  private isLoggingIn = false;
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly encryption: SecretEncryptionService,
   ) {}
 
+  beginLogin(): void {
+    this.loginTokens = null;
+    this.isLoggingIn = true;
+  }
+
+  finishLogin(): void {
+    this.loginTokens = null;
+    this.isLoggingIn = false;
+  }
+
+  cancelLogin(): void {
+    this.loginTokens = null;
+    this.isLoggingIn = false;
+  }
+
   async load(): Promise<TwitchTokens | null> {
+    if (this.isLoggingIn) {
+      return this.loginTokens;
+    }
+
     const account = await this.findLatestAccount();
 
     if (!account) {
@@ -29,6 +51,11 @@ export class TwitchTokenStore implements ConnectorTokenStore {
   }
 
   async save(tokens: TwitchTokens): Promise<void> {
+    if (this.isLoggingIn) {
+      this.loginTokens = tokens;
+      return;
+    }
+
     const account = await this.findLatestAccount();
 
     if (!account) {
@@ -50,6 +77,7 @@ export class TwitchTokenStore implements ConnectorTokenStore {
   }
 
   async clear(): Promise<void> {
+    this.cancelLogin();
     const account = await this.findLatestAccount();
 
     if (account) {
