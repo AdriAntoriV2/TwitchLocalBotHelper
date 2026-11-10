@@ -11,6 +11,7 @@ export class TwitchEventIngestionService {
     new Logger(
       TwitchEventIngestionService.name,
     );
+  private readonly warnedEventTypesWhileOffline = new Set<string>();
 
   constructor(
     private readonly eventsService: EventsService,
@@ -26,12 +27,17 @@ export class TwitchEventIngestionService {
       await this.streamsService.findActive();
 
     if (!stream) {
-      this.logger.warn(
-        `Ignoring Twitch event ${type}: no active stream`,
-      );
+      if (!this.warnedEventTypesWhileOffline.has(type)) {
+        this.logger.warn(
+          `Ignoring Twitch event ${type}: no active stream`,
+        );
+        this.warnedEventTypesWhileOffline.add(type);
+      }
 
       return null;
     }
+
+    this.warnedEventTypesWhileOffline.clear();
 
     return this.eventsService.create({
       streamId: stream.id,

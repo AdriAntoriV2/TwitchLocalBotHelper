@@ -25,6 +25,7 @@ export class TwitchEventSubService implements OnModuleDestroy {
   private readonly logger = new Logger(TwitchEventSubService.name);
   private readonly removeSessionListener: () => void;
   private readonly removeNotificationListener: () => void;
+  private offlineNoticeLogged = false;
 
   constructor(
     private readonly connector: TwitchConnectorService,
@@ -172,10 +173,14 @@ export class TwitchEventSubService implements OnModuleDestroy {
       const liveStream = response.data[0];
 
       if (!liveStream) {
-        this.logger.debug('Twitch channel is currently offline.');
+        if (!this.offlineNoticeLogged) {
+          this.logger.debug('Twitch channel is currently offline.');
+          this.offlineNoticeLogged = true;
+        }
         return;
       }
 
+      this.offlineNoticeLogged = false;
       const activeStream = await this.streamsService.findActive();
 
       if (activeStream) {
@@ -300,6 +305,7 @@ export class TwitchEventSubService implements OnModuleDestroy {
       throw new Error('Invalid Twitch stream.online payload.');
     }
 
+    this.offlineNoticeLogged = false;
     const stream = await this.streamsService.create({
       title: broadcasterUserName,
       startedAt,
