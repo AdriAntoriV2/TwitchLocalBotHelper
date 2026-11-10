@@ -58,6 +58,9 @@ goto :fail
 echo StreamOps port is responding.
 echo [%date% %time%] StreamOps port ready >> "%LOG%"
 
+echo Starting Twitch login monitor...
+start "StreamOps Twitch login monitor" powershell -NoProfile -ExecutionPolicy Bypass -File "%PROJECT_DIR%\watch-twitch-login.ps1" -BaseUrl "http://127.0.0.1:%PORT%/api/twitch"
+
 echo.
 if not exist "%OBS_EXE%" (
     echo ERROR: OBS executable not found:
