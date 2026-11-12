@@ -106,7 +106,7 @@ describe('Twitch2ConnectionService', () => {
         accessTokenEncrypted: 'encrypted-access-token',
         refreshTokenEncrypted: 'encrypted-refresh-token',
         accessTokenExpiresAt: new Date(tokens.expiresAt),
-        scopesJson: JSON.stringify(tokens.scopes),
+        scopes: tokens.scopes,
       },
       update: {
         login: 'streamer',
@@ -114,7 +114,7 @@ describe('Twitch2ConnectionService', () => {
         accessTokenEncrypted: 'encrypted-access-token',
         refreshTokenEncrypted: 'encrypted-refresh-token',
         accessTokenExpiresAt: new Date(tokens.expiresAt),
-        scopesJson: JSON.stringify(tokens.scopes),
+        scopes: tokens.scopes,
         connectedAt: expect.any(Date),
         tokenVersion: { increment: 1 },
       },

@@ -46,7 +46,7 @@ export class Twitch2TokenStore implements ConnectorTokenStore {
       accessToken: this.encryption.decrypt(account.accessTokenEncrypted),
       refreshToken: this.encryption.decrypt(account.refreshTokenEncrypted),
       expiresAt: account.accessTokenExpiresAt.getTime(),
-      scopes: this.parseScopes(account.scopesJson),
+      scopes: this.parseScopes(account.scopes),
     };
   }
 
@@ -70,7 +70,7 @@ export class Twitch2TokenStore implements ConnectorTokenStore {
         accessTokenEncrypted: this.encryption.encrypt(tokens.accessToken),
         refreshTokenEncrypted: this.encryption.encrypt(tokens.refreshToken),
         accessTokenExpiresAt: new Date(tokens.expiresAt),
-        scopesJson: JSON.stringify(tokens.scopes),
+        scopes: tokens.scopes,
         tokenVersion: { increment: 1 },
       },
     });
@@ -93,21 +93,22 @@ export class Twitch2TokenStore implements ConnectorTokenStore {
         accessTokenEncrypted: true,
         refreshTokenEncrypted: true,
         accessTokenExpiresAt: true,
-        scopesJson: true,
+        scopes: true,
       },
     });
   }
 
-  private parseScopes(scopesJson: string): string[] {
-    const scopes: unknown = JSON.parse(scopesJson);
-
-    if (
-      !Array.isArray(scopes) ||
-      scopes.some((scope: unknown) => typeof scope !== 'string')
-    ) {
+  private parseScopes(scopes: unknown): string[] {
+    if (!Array.isArray(scopes)) {
       throw new Error('Stored Twitch scopes are invalid.');
     }
 
-    return scopes;
+    return scopes.map((scope: unknown) => {
+      if (typeof scope !== 'string') {
+        throw new Error('Stored Twitch scopes are invalid.');
+      }
+
+      return scope;
+    });
   }
 }

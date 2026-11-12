@@ -10,7 +10,7 @@ describe('Twitch2TokenStore', () => {
       accessTokenEncrypted: 'stored-access',
       refreshTokenEncrypted: 'stored-refresh',
       accessTokenExpiresAt: new Date('2026-11-12T10:00:00.000Z'),
-      scopesJson: JSON.stringify(['user:read:chat']),
+      scopes: ['user:read:chat'],
     };
     const prisma = {
       twitchAccount: {
@@ -51,7 +51,7 @@ describe('Twitch2TokenStore', () => {
         accessTokenEncrypted: 'encrypted-rotated-access',
         refreshTokenEncrypted: 'encrypted-rotated-refresh',
         accessTokenExpiresAt: new Date(loginTokens.expiresAt),
-        scopesJson: JSON.stringify(loginTokens.scopes),
+        scopes: loginTokens.scopes,
         tokenVersion: { increment: 1 },
       },
     });

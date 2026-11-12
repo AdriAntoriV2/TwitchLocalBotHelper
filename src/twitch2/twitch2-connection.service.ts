@@ -207,7 +207,7 @@ export class Twitch2ConnectionService implements OnModuleInit, OnModuleDestroy {
           accessTokenEncrypted: this.encryption.encrypt(tokens.accessToken),
           refreshTokenEncrypted: this.encryption.encrypt(tokens.refreshToken),
           accessTokenExpiresAt: new Date(tokens.expiresAt),
-          scopesJson: JSON.stringify(tokens.scopes),
+          scopes: tokens.scopes,
         },
         update: {
           login: user.login,
@@ -215,7 +215,7 @@ export class Twitch2ConnectionService implements OnModuleInit, OnModuleDestroy {
           accessTokenEncrypted: this.encryption.encrypt(tokens.accessToken),
           refreshTokenEncrypted: this.encryption.encrypt(tokens.refreshToken),
           accessTokenExpiresAt: new Date(tokens.expiresAt),
-          scopesJson: JSON.stringify(tokens.scopes),
+          scopes: tokens.scopes,
           connectedAt: new Date(),
           tokenVersion: { increment: 1 },
         },
