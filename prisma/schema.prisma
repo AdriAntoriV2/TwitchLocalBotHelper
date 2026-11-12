@@ -1,30 +1,27 @@
 generator client {
   provider = "prisma-client"
-  output   = "../src/generated/prisma"
+  output   = "../../src/generated/twitch2-prisma"
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
 }
 
-model Stream {
-  id        String   @id @default(uuid())
-  title     String
-  startedAt DateTime
-  endedAt   DateTime?
+model ChatCommand {
+  id              String   @id @default(uuid())
+  name            String   @unique
+  enabled         Boolean  @default(true)
+  cooldownSeconds Int      @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  response        String
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  events          StreamEvent[]
-  firstRedemption FirstRedemption?
-
-  @@index([startedAt])
+  @@index([enabled])
 }
 
 model FirstRedemption {
-  id                String   @id @default(uuid())
-  streamId          String   @unique
+  id                 String   @id @default(uuid())
+  streamId           String   @unique
   twitchRedemptionId String   @unique
   userId             String
   userLogin          String
@@ -32,84 +29,55 @@ model FirstRedemption {
   redeemedAt         DateTime
   createdAt          DateTime @default(now())
 
-  stream Stream @relation(fields: [streamId], references: [id], onDelete: Cascade)
+  stream Stream @relation(fields: [streamId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
   @@index([redeemedAt])
 }
 
-model StreamEvent {
-  id         String   @id @default(uuid())
-  streamId   String
+model PointPoolAdjustment {
+  id               String   @id @default(uuid())
+  amount           Int
+  attribution      String   @default("GreedyKAITO")
+  reason           String?
+  createdAt        DateTime @default(now())
+  pointPoolEventId String
 
-  externalId String?
-  type       String
-  payload    Json
+  pointPoolEvent PointPoolEvent @relation(fields: [pointPoolEventId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
-  createdAt DateTime @default(now())
-
-  stream Stream @relation(fields: [streamId], references: [id], onDelete: Cascade)
-
-  @@unique([externalId])
-  @@index([streamId])
-  @@index([type])
-  @@index([createdAt])
-}
-
-model TwitchAccount {
-  id String @id @default(uuid())
-
-  twitchUserId String @unique
-  login String
-  displayName String
-
-  accessTokenEncrypted String
-  refreshTokenEncrypted String
-
-  accessTokenExpiresAt DateTime
-  tokenVersion Int @default(1)
-
-  scopes String[]
-
-  connectedAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([login])
-}
-
-
-model ChatCommand {
-  id String @id @default(uuid())
-
-  name String @unique
-  response String
-  enabled Boolean @default(true)
-
-  cooldownSeconds Int @default(0)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([enabled])
+  @@index([pointPoolEventId, createdAt])
 }
 
 model PointPoolEvent {
-  id        String   @id @default(uuid())
+  id        String    @id @default(uuid())
   name      String
-  status    String   @default("DRAFT")
+  status    String    @default("DRAFT")
   startedAt DateTime?
   endedAt   DateTime?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 
   redemptions PointPoolRedemption[]
   goals       PointPoolGoal[]
   adjustments PointPoolAdjustment[]
+
   @@index([status])
   @@index([createdAt])
 }
 
+model PointPoolGoal {
+  id               String   @id @default(uuid())
+  targetPoints     Int
+  description      String
+  createdAt        DateTime @default(now())
+  pointPoolEventId String
+
+  pointPoolEvent PointPoolEvent @relation(fields: [pointPoolEventId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@index([pointPoolEventId, createdAt])
+}
+
 model PointPoolRedemption {
-  id                String   @id @default(uuid())
+  id                 String   @id @default(uuid())
   twitchRedemptionId String   @unique
   userId             String
   userLogin          String
@@ -119,36 +87,66 @@ model PointPoolRedemption {
   pointsCost         Int
   redeemedAt         DateTime
   createdAt          DateTime @default(now())
+  pointPoolEventId   String
 
-  pointPoolEventId String
-  pointPoolEvent   PointPoolEvent @relation(fields: [pointPoolEventId], references: [id], onDelete: Cascade)
+  pointPoolEvent PointPoolEvent @relation(fields: [pointPoolEventId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
   @@index([pointPoolEventId, redeemedAt])
   @@index([userId])
 }
 
+model Stream {
+  id        String    @id @default(uuid())
+  title     String
+  startedAt DateTime
+  endedAt   DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 
-model PointPoolGoal {
-  id          String   @id @default(uuid())
-  targetPoints Int
-  description String
-  createdAt   DateTime @default(now())
+  events          StreamEvent[]
+  firstRedemption FirstRedemption?
 
-  pointPoolEventId String
-  pointPoolEvent   PointPoolEvent @relation(fields: [pointPoolEventId], references: [id], onDelete: Cascade)
-
-  @@index([pointPoolEventId, createdAt])
+  @@index([startedAt])
 }
 
-model PointPoolAdjustment {
-  id          String   @id @default(uuid())
-  amount      Int
-  attribution String   @default("GreedyKAITO")
-  reason      String?
-  createdAt   DateTime @default(now())
+model StreamEvent {
+  id         String   @id @default(uuid())
+  streamId   String
+  type       String
+  payload    Json
+  createdAt  DateTime @default(now())
+  externalId String?  @unique
 
-  pointPoolEventId String
-  pointPoolEvent   PointPoolEvent @relation(fields: [pointPoolEventId], references: [id], onDelete: Cascade)
+  stream Stream @relation(fields: [streamId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 
-  @@index([pointPoolEventId, createdAt])
+  @@index([streamId])
+  @@index([type])
+  @@index([createdAt])
+}
+
+model TwitchAccount {
+  id                    String   @id @default(uuid())
+  twitchUserId          String   @unique
+  login                 String
+  displayName           String
+  accessTokenEncrypted  String
+  refreshTokenEncrypted String
+  accessTokenExpiresAt  DateTime
+  scopes                Json?
+  connectedAt           DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  tokenVersion          Int      @default(1)
+
+  @@index([login])
+}
+
+model NeonMigrationHistory {
+  id                  String  @id
+  checksum            String
+  finished_at         String?
+  migration_name      String
+  logs                String?
+  rolled_back_at      String?
+  started_at          String
+  applied_steps_count Int     @default(0)
 }

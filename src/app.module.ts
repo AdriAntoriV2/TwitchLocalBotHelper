@@ -15,7 +15,7 @@ import { QueueModule } from './queue/queue.module.js';
 import { EventsModule } from './events/events.module.js';
 import { StreamsModule } from './streams/streams.module.js';
 import { RequestIdMiddleware } from './common/middleware/request-id.middleware.js';
-import { TwitchModule } from './twitch/twitch.module.js';
+import { Twitch2Module } from './twitch2/twitch2.module.js';
 import { CommandsModule } from './commands/commands.module.js';
 import { ChatCommandsModule } from './chat-commands/chat-commands.module.js';
 import { PointPoolModule } from './point-pool/point-pool.module.js';
@@ -29,7 +29,7 @@ import { ChatOverlayModule } from './chat-overlay/chat-overlay.module.js';
     HealthModule,
     EventsModule,
     StreamsModule,
-    TwitchModule,
+    Twitch2Module,
     CommandsModule,
     ChatCommandsModule,
     PointPoolModule,

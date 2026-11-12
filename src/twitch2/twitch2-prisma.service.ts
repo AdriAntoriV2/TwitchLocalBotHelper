@@ -9,7 +9,7 @@ export class Twitch2PrismaService
 {
   constructor() {
     const adapter = new PrismaBetterSqlite3({
-      url: 'file:./prisma/twitch2/twitch2.db',
+      url: 'file:./prisma/dev.db',
     });
 
     super({ adapter });

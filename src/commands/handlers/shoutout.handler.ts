@@ -6,14 +6,14 @@ import type {
   ChatCommandContext,
   ChatCommandHandler,
 } from '../types/chat-command.types.js';
-import { TwitchService } from '../../twitch/twitch.service.js';
+import { Twitch2ConnectionService } from '../../twitch2/twitch2-connection.service.js';
 
 @Injectable()
 export class ShoutoutHandler implements ChatCommandHandler {
   readonly command = 'so';
 
   constructor(
-    private readonly twitchService: TwitchService,
+    private readonly twitchService: Twitch2ConnectionService,
   ) {}
 
   async execute(context: ChatCommandContext) {

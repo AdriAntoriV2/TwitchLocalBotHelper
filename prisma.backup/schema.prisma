@@ -1,0 +1,154 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Stream {
+  id        String   @id @default(uuid())
+  title     String
+  startedAt DateTime
+  endedAt   DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  events          StreamEvent[]
+  firstRedemption FirstRedemption?
+
+  @@index([startedAt])
+}
+
+model FirstRedemption {
+  id                String   @id @default(uuid())
+  streamId          String   @unique
+  twitchRedemptionId String   @unique
+  userId             String
+  userLogin          String
+  userDisplayName    String
+  redeemedAt         DateTime
+  createdAt          DateTime @default(now())
+
+  stream Stream @relation(fields: [streamId], references: [id], onDelete: Cascade)
+
+  @@index([redeemedAt])
+}
+
+model StreamEvent {
+  id         String   @id @default(uuid())
+  streamId   String
+
+  externalId String?
+  type       String
+  payload    Json
+
+  createdAt DateTime @default(now())
+
+  stream Stream @relation(fields: [streamId], references: [id], onDelete: Cascade)
+
+  @@unique([externalId])
+  @@index([streamId])
+  @@index([type])
+  @@index([createdAt])
+}
+
+model TwitchAccount {
+  id String @id @default(uuid())
+
+  twitchUserId String @unique
+  login String
+  displayName String
+
+  accessTokenEncrypted String
+  refreshTokenEncrypted String
+
+  accessTokenExpiresAt DateTime
+  tokenVersion Int @default(1)
+
+  scopes String[]
+
+  connectedAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([login])
+}
+
+
+model ChatCommand {
+  id String @id @default(uuid())
+
+  name String @unique
+  response String
+  enabled Boolean @default(true)
+
+  cooldownSeconds Int @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([enabled])
+}
+
+model PointPoolEvent {
+  id        String   @id @default(uuid())
+  name      String
+  status    String   @default("DRAFT")
+  startedAt DateTime?
+  endedAt   DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  redemptions PointPoolRedemption[]
+  goals       PointPoolGoal[]
+  adjustments PointPoolAdjustment[]
+  @@index([status])
+  @@index([createdAt])
+}
+
+model PointPoolRedemption {
+  id                String   @id @default(uuid())
+  twitchRedemptionId String   @unique
+  userId             String
+  userLogin          String
+  userDisplayName    String
+  rewardId           String
+  rewardTitle        String
+  pointsCost         Int
+  redeemedAt         DateTime
+  createdAt          DateTime @default(now())
+
+  pointPoolEventId String
+  pointPoolEvent   PointPoolEvent @relation(fields: [pointPoolEventId], references: [id], onDelete: Cascade)
+
+  @@index([pointPoolEventId, redeemedAt])
+  @@index([userId])
+}
+
+
+model PointPoolGoal {
+  id          String   @id @default(uuid())
+  targetPoints Int
+  description String
+  createdAt   DateTime @default(now())
+
+  pointPoolEventId String
+  pointPoolEvent   PointPoolEvent @relation(fields: [pointPoolEventId], references: [id], onDelete: Cascade)
+
+  @@index([pointPoolEventId, createdAt])
+}
+
+model PointPoolAdjustment {
+  id          String   @id @default(uuid())
+  amount      Int
+  attribution String   @default("GreedyKAITO")
+  reason      String?
+  createdAt   DateTime @default(now())
+
+  pointPoolEventId String
+  pointPoolEvent   PointPoolEvent @relation(fields: [pointPoolEventId], references: [id], onDelete: Cascade)
+
+  @@index([pointPoolEventId, createdAt])
+}

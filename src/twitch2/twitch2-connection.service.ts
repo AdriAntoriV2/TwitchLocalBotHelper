@@ -1,9 +1,11 @@
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
   Logger,
   OnModuleDestroy,
   OnModuleInit,
+  ServiceUnavailableException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import {
@@ -33,6 +35,27 @@ interface TwitchUserResponse {
     login: string;
     display_name: string;
   }>;
+}
+
+interface TwitchChannelsResponse {
+  data: Array<{
+    game_name: string;
+    title: string;
+  }>;
+}
+
+interface TwitchStreamsResponse {
+  data: Array<{
+    user_id: string;
+  }>;
+}
+
+export interface Twitch2ShoutoutInfo {
+  displayName: string;
+  login: string;
+  category: string;
+  title: string;
+  isLive: boolean;
 }
 
 @Injectable()
@@ -166,6 +189,54 @@ export class Twitch2ConnectionService implements OnModuleInit, OnModuleDestroy {
 
   getAuthenticatedUserId(): string | null {
     return this.authenticatedUserId;
+  }
+
+  async getShoutoutInfo(username: string): Promise<Twitch2ShoutoutInfo | null> {
+    await this.ensureAuthorized();
+
+    const login = username.trim().replace(/^@/, '').toLowerCase();
+
+    if (!/^[a-z0-9_]{1,25}$/.test(login)) {
+      throw new BadRequestException('Invalid Twitch username.');
+    }
+
+    const userParams = new URLSearchParams({ login });
+    const users = await this.client.api.get<TwitchUserResponse>(
+      `/users?${userParams.toString()}`,
+    );
+    const user = users.data[0];
+
+    if (!user) {
+      return null;
+    }
+
+    const channelParams = new URLSearchParams({
+      broadcaster_id: user.id,
+    });
+    const streamParams = new URLSearchParams({ user_id: user.id });
+    const [channels, streams] = await Promise.all([
+      this.client.api.get<TwitchChannelsResponse>(
+        `/channels?${channelParams.toString()}`,
+      ),
+      this.client.api.get<TwitchStreamsResponse>(
+        `/streams?${streamParams.toString()}`,
+      ),
+    ]);
+    const channel = channels.data[0];
+
+    return {
+      displayName: user.display_name,
+      login: user.login,
+      category: channel?.game_name ?? '',
+      title: channel?.title ?? '',
+      isLive: streams.data.length > 0,
+    };
+  }
+
+  async ensureAuthorized(): Promise<void> {
+    if (!this.isReady) {
+      throw new ServiceUnavailableException('Twitch is not connected.');
+    }
   }
 
   async onModuleDestroy(): Promise<void> {
