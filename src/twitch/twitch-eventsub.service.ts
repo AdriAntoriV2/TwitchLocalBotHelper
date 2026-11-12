@@ -170,25 +170,8 @@ export class TwitchEventSubService implements OnModuleDestroy {
       const response = await this.connector.client.api.get<{
         data: Array<{ title: string; started_at: string }>;
       }>(`/streams?${params.toString()}`);
+      
       const liveStream = response.data[0];
-
-      if (!liveStream) {
-        if (!this.offlineNoticeLogged) {
-          this.logger.debug('Twitch channel is currently offline.');
-          this.offlineNoticeLogged = true;
-        }
-        return;
-      }
-
-      this.offlineNoticeLogged = false;
-      const activeStream = await this.streamsService.findActive();
-
-      if (activeStream) {
-        this.logger.log(
-          `Active StreamOps stream already exists: ${activeStream.id}`,
-        );
-        return;
-      }
 
       const stream = await this.streamsService.create({
         title: liveStream.title,

@@ -5,6 +5,8 @@
 
 # Generated Prisma Client
 /src/generated/prisma/
+/src/generated/twitch2-prisma/
+/prisma/twitch2/twitch2.db*
 
 # TypeScript build cache
 *.tsbuildinfo

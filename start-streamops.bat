@@ -1,7 +1,7 @@
 @echo off
 setlocal
 
-set "PROJECT_DIR=D:\Work\Portfolio\streamops"
+set "PROJECT_DIR=D:\Work\Portfolio\TwitchStreamops"
 set "OBS_EXE=C:\Program Files\obs-studio\bin\64bit\obs64.exe"
 set "VEADOTUBE_EXE=D:\Stream\veadotube-mini-win-x64\veadotube-mini.exe"
 set "PORT=6769"

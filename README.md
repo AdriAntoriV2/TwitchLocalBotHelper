@@ -31,6 +31,25 @@
 $ npm install
 ```
 
+## Twitch2 database
+
+The `twitch2` module uses its own SQLite database at
+`prisma/twitch2/twitch2.db`; the primary Prisma schema remains PostgreSQL for
+Neon. The SQLite database file is local and ignored by Git.
+
+Apply the committed Twitch2 migrations before enabling the module in a fresh
+checkout:
+
+```bash
+$ npm run prisma:twitch2:deploy
+```
+
+Create future Twitch2 schema migrations with:
+
+```bash
+$ npm run prisma:twitch2:migrate -- --name migration-name
+```
+
 ## Compile and run the project
 
 ```bash

@@ -1,0 +1,24 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../../src/generated/twitch2-prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model TwitchAccount {
+  id                    String   @id @default(uuid())
+  twitchUserId          String   @unique
+  login                 String
+  displayName           String
+  accessTokenEncrypted  String
+  refreshTokenEncrypted String
+  accessTokenExpiresAt  DateTime
+  tokenVersion          Int      @default(1)
+  scopesJson            String   @default("[]")
+  connectedAt           DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  @@index([login])
+}
