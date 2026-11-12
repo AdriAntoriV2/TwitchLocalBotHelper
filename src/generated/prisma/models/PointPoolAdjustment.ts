@@ -338,16 +338,6 @@ export type PointPoolAdjustmentUncheckedUpdateManyInput = {
   pointPoolEventId?: Prisma.StringFieldUpdateOperationsInput | string
 }
 
-export type PointPoolAdjustmentListRelationFilter = {
-  every?: Prisma.PointPoolAdjustmentWhereInput
-  some?: Prisma.PointPoolAdjustmentWhereInput
-  none?: Prisma.PointPoolAdjustmentWhereInput
-}
-
-export type PointPoolAdjustmentOrderByRelationAggregateInput = {
-  _count?: Prisma.SortOrder
-}
-
 export type PointPoolAdjustmentCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   amount?: Prisma.SortOrder
@@ -381,6 +371,20 @@ export type PointPoolAdjustmentMinOrderByAggregateInput = {
 
 export type PointPoolAdjustmentSumOrderByAggregateInput = {
   amount?: Prisma.SortOrder
+}
+
+export type PointPoolAdjustmentListRelationFilter = {
+  every?: Prisma.PointPoolAdjustmentWhereInput
+  some?: Prisma.PointPoolAdjustmentWhereInput
+  none?: Prisma.PointPoolAdjustmentWhereInput
+}
+
+export type PointPoolAdjustmentOrderByRelationAggregateInput = {
+  _count?: Prisma.SortOrder
+}
+
+export type NullableStringFieldUpdateOperationsInput = {
+  set?: string | null
 }
 
 export type PointPoolAdjustmentCreateNestedManyWithoutPointPoolEventInput = {
@@ -448,7 +452,6 @@ export type PointPoolAdjustmentCreateOrConnectWithoutPointPoolEventInput = {
 
 export type PointPoolAdjustmentCreateManyPointPoolEventInputEnvelope = {
   data: Prisma.PointPoolAdjustmentCreateManyPointPoolEventInput | Prisma.PointPoolAdjustmentCreateManyPointPoolEventInput[]
-  skipDuplicates?: boolean
 }
 
 export type PointPoolAdjustmentUpsertWithWhereUniqueWithoutPointPoolEventInput = {
@@ -1239,7 +1242,6 @@ export type PointPoolAdjustmentCreateManyArgs<ExtArgs extends runtime.Types.Exte
    * The data used to create many PointPoolAdjustments.
    */
   data: Prisma.PointPoolAdjustmentCreateManyInput | Prisma.PointPoolAdjustmentCreateManyInput[]
-  skipDuplicates?: boolean
 }
 
 /**
@@ -1258,7 +1260,6 @@ export type PointPoolAdjustmentCreateManyAndReturnArgs<ExtArgs extends runtime.T
    * The data used to create many PointPoolAdjustments.
    */
   data: Prisma.PointPoolAdjustmentCreateManyInput | Prisma.PointPoolAdjustmentCreateManyInput[]
-  skipDuplicates?: boolean
   /**
    * Choose, which related nodes to fetch as well
    */

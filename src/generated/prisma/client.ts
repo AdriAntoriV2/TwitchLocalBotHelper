@@ -31,8 +31,8 @@ export * from "./enums.js"
  * const prisma = new PrismaClient({
  *   adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL })
  * })
- * // Fetch zero or more Streams
- * const streams = await prisma.stream.findMany()
+ * // Fetch zero or more ChatCommands
+ * const chatCommands = await prisma.chatCommand.findMany()
  * ```
  * 
  * Read more in our [docs](https://pris.ly/d/client).
@@ -42,15 +42,40 @@ export type PrismaClient<LogOpts extends Prisma.LogLevel = never, OmitOpts exten
 export { Prisma }
 
 /**
- * Model Stream
+ * Model ChatCommand
  * 
  */
-export type Stream = Prisma.StreamModel
+export type ChatCommand = Prisma.ChatCommandModel
 /**
  * Model FirstRedemption
  * 
  */
 export type FirstRedemption = Prisma.FirstRedemptionModel
+/**
+ * Model PointPoolAdjustment
+ * 
+ */
+export type PointPoolAdjustment = Prisma.PointPoolAdjustmentModel
+/**
+ * Model PointPoolEvent
+ * 
+ */
+export type PointPoolEvent = Prisma.PointPoolEventModel
+/**
+ * Model PointPoolGoal
+ * 
+ */
+export type PointPoolGoal = Prisma.PointPoolGoalModel
+/**
+ * Model PointPoolRedemption
+ * 
+ */
+export type PointPoolRedemption = Prisma.PointPoolRedemptionModel
+/**
+ * Model Stream
+ * 
+ */
+export type Stream = Prisma.StreamModel
 /**
  * Model StreamEvent
  * 
@@ -62,27 +87,7 @@ export type StreamEvent = Prisma.StreamEventModel
  */
 export type TwitchAccount = Prisma.TwitchAccountModel
 /**
- * Model ChatCommand
+ * Model NeonMigrationHistory
  * 
  */
-export type ChatCommand = Prisma.ChatCommandModel
-/**
- * Model PointPoolEvent
- * 
- */
-export type PointPoolEvent = Prisma.PointPoolEventModel
-/**
- * Model PointPoolRedemption
- * 
- */
-export type PointPoolRedemption = Prisma.PointPoolRedemptionModel
-/**
- * Model PointPoolGoal
- * 
- */
-export type PointPoolGoal = Prisma.PointPoolGoalModel
-/**
- * Model PointPoolAdjustment
- * 
- */
-export type PointPoolAdjustment = Prisma.PointPoolAdjustmentModel
+export type NeonMigrationHistory = Prisma.NeonMigrationHistoryModel

@@ -424,7 +424,6 @@ export type PointPoolGoalCreateOrConnectWithoutPointPoolEventInput = {
 
 export type PointPoolGoalCreateManyPointPoolEventInputEnvelope = {
   data: Prisma.PointPoolGoalCreateManyPointPoolEventInput | Prisma.PointPoolGoalCreateManyPointPoolEventInput[]
-  skipDuplicates?: boolean
 }
 
 export type PointPoolGoalUpsertWithWhereUniqueWithoutPointPoolEventInput = {
@@ -1204,7 +1203,6 @@ export type PointPoolGoalCreateManyArgs<ExtArgs extends runtime.Types.Extensions
    * The data used to create many PointPoolGoals.
    */
   data: Prisma.PointPoolGoalCreateManyInput | Prisma.PointPoolGoalCreateManyInput[]
-  skipDuplicates?: boolean
 }
 
 /**
@@ -1223,7 +1221,6 @@ export type PointPoolGoalCreateManyAndReturnArgs<ExtArgs extends runtime.Types.E
    * The data used to create many PointPoolGoals.
    */
   data: Prisma.PointPoolGoalCreateManyInput | Prisma.PointPoolGoalCreateManyInput[]
-  skipDuplicates?: boolean
   /**
    * Choose, which related nodes to fetch as well
    */

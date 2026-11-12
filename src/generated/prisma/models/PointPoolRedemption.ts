@@ -568,7 +568,6 @@ export type PointPoolRedemptionCreateOrConnectWithoutPointPoolEventInput = {
 
 export type PointPoolRedemptionCreateManyPointPoolEventInputEnvelope = {
   data: Prisma.PointPoolRedemptionCreateManyPointPoolEventInput | Prisma.PointPoolRedemptionCreateManyPointPoolEventInput[]
-  skipDuplicates?: boolean
 }
 
 export type PointPoolRedemptionUpsertWithWhereUniqueWithoutPointPoolEventInput = {
@@ -1414,7 +1413,6 @@ export type PointPoolRedemptionCreateManyArgs<ExtArgs extends runtime.Types.Exte
    * The data used to create many PointPoolRedemptions.
    */
   data: Prisma.PointPoolRedemptionCreateManyInput | Prisma.PointPoolRedemptionCreateManyInput[]
-  skipDuplicates?: boolean
 }
 
 /**
@@ -1433,7 +1431,6 @@ export type PointPoolRedemptionCreateManyAndReturnArgs<ExtArgs extends runtime.T
    * The data used to create many PointPoolRedemptions.
    */
   data: Prisma.PointPoolRedemptionCreateManyInput | Prisma.PointPoolRedemptionCreateManyInput[]
-  skipDuplicates?: boolean
   /**
    * Choose, which related nodes to fetch as well
    */

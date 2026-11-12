@@ -27,26 +27,26 @@ export type AggregateStreamEvent = {
 export type StreamEventMinAggregateOutputType = {
   id: string | null
   streamId: string | null
-  externalId: string | null
   type: string | null
   createdAt: Date | null
+  externalId: string | null
 }
 
 export type StreamEventMaxAggregateOutputType = {
   id: string | null
   streamId: string | null
-  externalId: string | null
   type: string | null
   createdAt: Date | null
+  externalId: string | null
 }
 
 export type StreamEventCountAggregateOutputType = {
   id: number
   streamId: number
-  externalId: number
   type: number
   payload: number
   createdAt: number
+  externalId: number
   _all: number
 }
 
@@ -54,26 +54,26 @@ export type StreamEventCountAggregateOutputType = {
 export type StreamEventMinAggregateInputType = {
   id?: true
   streamId?: true
-  externalId?: true
   type?: true
   createdAt?: true
+  externalId?: true
 }
 
 export type StreamEventMaxAggregateInputType = {
   id?: true
   streamId?: true
-  externalId?: true
   type?: true
   createdAt?: true
+  externalId?: true
 }
 
 export type StreamEventCountAggregateInputType = {
   id?: true
   streamId?: true
-  externalId?: true
   type?: true
   payload?: true
   createdAt?: true
+  externalId?: true
   _all?: true
 }
 
@@ -152,10 +152,10 @@ export type StreamEventGroupByArgs<ExtArgs extends runtime.Types.Extensions.Inte
 export type StreamEventGroupByOutputType = {
   id: string
   streamId: string
-  externalId: string | null
   type: string
   payload: runtime.JsonValue
   createdAt: Date
+  externalId: string | null
   _count: StreamEventCountAggregateOutputType | null
   _min: StreamEventMinAggregateOutputType | null
   _max: StreamEventMaxAggregateOutputType | null
@@ -182,20 +182,20 @@ export type StreamEventWhereInput = {
   NOT?: Prisma.StreamEventWhereInput | Prisma.StreamEventWhereInput[]
   id?: Prisma.StringFilter<"StreamEvent"> | string
   streamId?: Prisma.StringFilter<"StreamEvent"> | string
-  externalId?: Prisma.StringNullableFilter<"StreamEvent"> | string | null
   type?: Prisma.StringFilter<"StreamEvent"> | string
   payload?: Prisma.JsonFilter<"StreamEvent">
   createdAt?: Prisma.DateTimeFilter<"StreamEvent"> | Date | string
+  externalId?: Prisma.StringNullableFilter<"StreamEvent"> | string | null
   stream?: Prisma.XOR<Prisma.StreamScalarRelationFilter, Prisma.StreamWhereInput>
 }
 
 export type StreamEventOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   streamId?: Prisma.SortOrder
-  externalId?: Prisma.SortOrderInput | Prisma.SortOrder
   type?: Prisma.SortOrder
   payload?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+  externalId?: Prisma.SortOrderInput | Prisma.SortOrder
   stream?: Prisma.StreamOrderByWithRelationInput
 }
 
@@ -215,10 +215,10 @@ export type StreamEventWhereUniqueInput = Prisma.AtLeast<{
 export type StreamEventOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   streamId?: Prisma.SortOrder
-  externalId?: Prisma.SortOrderInput | Prisma.SortOrder
   type?: Prisma.SortOrder
   payload?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+  externalId?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.StreamEventCountOrderByAggregateInput
   _max?: Prisma.StreamEventMaxOrderByAggregateInput
   _min?: Prisma.StreamEventMinOrderByAggregateInput
@@ -230,72 +230,72 @@ export type StreamEventScalarWhereWithAggregatesInput = {
   NOT?: Prisma.StreamEventScalarWhereWithAggregatesInput | Prisma.StreamEventScalarWhereWithAggregatesInput[]
   id?: Prisma.StringWithAggregatesFilter<"StreamEvent"> | string
   streamId?: Prisma.StringWithAggregatesFilter<"StreamEvent"> | string
-  externalId?: Prisma.StringNullableWithAggregatesFilter<"StreamEvent"> | string | null
   type?: Prisma.StringWithAggregatesFilter<"StreamEvent"> | string
   payload?: Prisma.JsonWithAggregatesFilter<"StreamEvent">
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"StreamEvent"> | Date | string
+  externalId?: Prisma.StringNullableWithAggregatesFilter<"StreamEvent"> | string | null
 }
 
 export type StreamEventCreateInput = {
   id?: string
-  externalId?: string | null
   type: string
   payload: Prisma.JsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
+  externalId?: string | null
   stream: Prisma.StreamCreateNestedOneWithoutEventsInput
 }
 
 export type StreamEventUncheckedCreateInput = {
   id?: string
   streamId: string
-  externalId?: string | null
   type: string
   payload: Prisma.JsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
+  externalId?: string | null
 }
 
 export type StreamEventUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  externalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   type?: Prisma.StringFieldUpdateOperationsInput | string
   payload?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  externalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   stream?: Prisma.StreamUpdateOneRequiredWithoutEventsNestedInput
 }
 
 export type StreamEventUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   streamId?: Prisma.StringFieldUpdateOperationsInput | string
-  externalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   type?: Prisma.StringFieldUpdateOperationsInput | string
   payload?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  externalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type StreamEventCreateManyInput = {
   id?: string
   streamId: string
-  externalId?: string | null
   type: string
   payload: Prisma.JsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
+  externalId?: string | null
 }
 
 export type StreamEventUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  externalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   type?: Prisma.StringFieldUpdateOperationsInput | string
   payload?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  externalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type StreamEventUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   streamId?: Prisma.StringFieldUpdateOperationsInput | string
-  externalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   type?: Prisma.StringFieldUpdateOperationsInput | string
   payload?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  externalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type StreamEventListRelationFilter = {
@@ -311,26 +311,26 @@ export type StreamEventOrderByRelationAggregateInput = {
 export type StreamEventCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   streamId?: Prisma.SortOrder
-  externalId?: Prisma.SortOrder
   type?: Prisma.SortOrder
   payload?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+  externalId?: Prisma.SortOrder
 }
 
 export type StreamEventMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   streamId?: Prisma.SortOrder
-  externalId?: Prisma.SortOrder
   type?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+  externalId?: Prisma.SortOrder
 }
 
 export type StreamEventMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   streamId?: Prisma.SortOrder
-  externalId?: Prisma.SortOrder
   type?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+  externalId?: Prisma.SortOrder
 }
 
 export type StreamEventCreateNestedManyWithoutStreamInput = {
@@ -375,24 +375,20 @@ export type StreamEventUncheckedUpdateManyWithoutStreamNestedInput = {
   deleteMany?: Prisma.StreamEventScalarWhereInput | Prisma.StreamEventScalarWhereInput[]
 }
 
-export type NullableStringFieldUpdateOperationsInput = {
-  set?: string | null
-}
-
 export type StreamEventCreateWithoutStreamInput = {
   id?: string
-  externalId?: string | null
   type: string
   payload: Prisma.JsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
+  externalId?: string | null
 }
 
 export type StreamEventUncheckedCreateWithoutStreamInput = {
   id?: string
-  externalId?: string | null
   type: string
   payload: Prisma.JsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
+  externalId?: string | null
 }
 
 export type StreamEventCreateOrConnectWithoutStreamInput = {
@@ -402,7 +398,6 @@ export type StreamEventCreateOrConnectWithoutStreamInput = {
 
 export type StreamEventCreateManyStreamInputEnvelope = {
   data: Prisma.StreamEventCreateManyStreamInput | Prisma.StreamEventCreateManyStreamInput[]
-  skipDuplicates?: boolean
 }
 
 export type StreamEventUpsertWithWhereUniqueWithoutStreamInput = {
@@ -427,42 +422,42 @@ export type StreamEventScalarWhereInput = {
   NOT?: Prisma.StreamEventScalarWhereInput | Prisma.StreamEventScalarWhereInput[]
   id?: Prisma.StringFilter<"StreamEvent"> | string
   streamId?: Prisma.StringFilter<"StreamEvent"> | string
-  externalId?: Prisma.StringNullableFilter<"StreamEvent"> | string | null
   type?: Prisma.StringFilter<"StreamEvent"> | string
   payload?: Prisma.JsonFilter<"StreamEvent">
   createdAt?: Prisma.DateTimeFilter<"StreamEvent"> | Date | string
+  externalId?: Prisma.StringNullableFilter<"StreamEvent"> | string | null
 }
 
 export type StreamEventCreateManyStreamInput = {
   id?: string
-  externalId?: string | null
   type: string
   payload: Prisma.JsonNullValueInput | runtime.InputJsonValue
   createdAt?: Date | string
+  externalId?: string | null
 }
 
 export type StreamEventUpdateWithoutStreamInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  externalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   type?: Prisma.StringFieldUpdateOperationsInput | string
   payload?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  externalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type StreamEventUncheckedUpdateWithoutStreamInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  externalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   type?: Prisma.StringFieldUpdateOperationsInput | string
   payload?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  externalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type StreamEventUncheckedUpdateManyWithoutStreamInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  externalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   type?: Prisma.StringFieldUpdateOperationsInput | string
   payload?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  externalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 
@@ -470,43 +465,43 @@ export type StreamEventUncheckedUpdateManyWithoutStreamInput = {
 export type StreamEventSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   streamId?: boolean
-  externalId?: boolean
   type?: boolean
   payload?: boolean
   createdAt?: boolean
+  externalId?: boolean
   stream?: boolean | Prisma.StreamDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["streamEvent"]>
 
 export type StreamEventSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   streamId?: boolean
-  externalId?: boolean
   type?: boolean
   payload?: boolean
   createdAt?: boolean
+  externalId?: boolean
   stream?: boolean | Prisma.StreamDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["streamEvent"]>
 
 export type StreamEventSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   streamId?: boolean
-  externalId?: boolean
   type?: boolean
   payload?: boolean
   createdAt?: boolean
+  externalId?: boolean
   stream?: boolean | Prisma.StreamDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["streamEvent"]>
 
 export type StreamEventSelectScalar = {
   id?: boolean
   streamId?: boolean
-  externalId?: boolean
   type?: boolean
   payload?: boolean
   createdAt?: boolean
+  externalId?: boolean
 }
 
-export type StreamEventOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "streamId" | "externalId" | "type" | "payload" | "createdAt", ExtArgs["result"]["streamEvent"]>
+export type StreamEventOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "streamId" | "type" | "payload" | "createdAt" | "externalId", ExtArgs["result"]["streamEvent"]>
 export type StreamEventInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   stream?: boolean | Prisma.StreamDefaultArgs<ExtArgs>
 }
@@ -525,10 +520,10 @@ export type $StreamEventPayload<ExtArgs extends runtime.Types.Extensions.Interna
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     streamId: string
-    externalId: string | null
     type: string
     payload: runtime.JsonValue
     createdAt: Date
+    externalId: string | null
   }, ExtArgs["result"]["streamEvent"]>
   composites: {}
 }
@@ -955,10 +950,10 @@ export interface Prisma__StreamEventClient<T, Null = never, ExtArgs extends runt
 export interface StreamEventFieldRefs {
   readonly id: Prisma.FieldRef<"StreamEvent", 'String'>
   readonly streamId: Prisma.FieldRef<"StreamEvent", 'String'>
-  readonly externalId: Prisma.FieldRef<"StreamEvent", 'String'>
   readonly type: Prisma.FieldRef<"StreamEvent", 'String'>
   readonly payload: Prisma.FieldRef<"StreamEvent", 'Json'>
   readonly createdAt: Prisma.FieldRef<"StreamEvent", 'DateTime'>
+  readonly externalId: Prisma.FieldRef<"StreamEvent", 'String'>
 }
     
 
@@ -1193,7 +1188,6 @@ export type StreamEventCreateManyArgs<ExtArgs extends runtime.Types.Extensions.I
    * The data used to create many StreamEvents.
    */
   data: Prisma.StreamEventCreateManyInput | Prisma.StreamEventCreateManyInput[]
-  skipDuplicates?: boolean
 }
 
 /**
@@ -1212,7 +1206,6 @@ export type StreamEventCreateManyAndReturnArgs<ExtArgs extends runtime.Types.Ext
    * The data used to create many StreamEvents.
    */
   data: Prisma.StreamEventCreateManyInput | Prisma.StreamEventCreateManyInput[]
-  skipDuplicates?: boolean
   /**
    * Choose, which related nodes to fetch as well
    */

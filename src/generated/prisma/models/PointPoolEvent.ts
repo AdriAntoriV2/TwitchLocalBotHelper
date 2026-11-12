@@ -340,6 +340,11 @@ export type PointPoolEventUncheckedUpdateManyInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
+export type PointPoolEventScalarRelationFilter = {
+  is?: Prisma.PointPoolEventWhereInput
+  isNot?: Prisma.PointPoolEventWhereInput
+}
+
 export type PointPoolEventCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
@@ -370,23 +375,22 @@ export type PointPoolEventMinOrderByAggregateInput = {
   updatedAt?: Prisma.SortOrder
 }
 
-export type PointPoolEventScalarRelationFilter = {
-  is?: Prisma.PointPoolEventWhereInput
-  isNot?: Prisma.PointPoolEventWhereInput
-}
-
-export type PointPoolEventCreateNestedOneWithoutRedemptionsInput = {
-  create?: Prisma.XOR<Prisma.PointPoolEventCreateWithoutRedemptionsInput, Prisma.PointPoolEventUncheckedCreateWithoutRedemptionsInput>
-  connectOrCreate?: Prisma.PointPoolEventCreateOrConnectWithoutRedemptionsInput
+export type PointPoolEventCreateNestedOneWithoutAdjustmentsInput = {
+  create?: Prisma.XOR<Prisma.PointPoolEventCreateWithoutAdjustmentsInput, Prisma.PointPoolEventUncheckedCreateWithoutAdjustmentsInput>
+  connectOrCreate?: Prisma.PointPoolEventCreateOrConnectWithoutAdjustmentsInput
   connect?: Prisma.PointPoolEventWhereUniqueInput
 }
 
-export type PointPoolEventUpdateOneRequiredWithoutRedemptionsNestedInput = {
-  create?: Prisma.XOR<Prisma.PointPoolEventCreateWithoutRedemptionsInput, Prisma.PointPoolEventUncheckedCreateWithoutRedemptionsInput>
-  connectOrCreate?: Prisma.PointPoolEventCreateOrConnectWithoutRedemptionsInput
-  upsert?: Prisma.PointPoolEventUpsertWithoutRedemptionsInput
+export type PointPoolEventUpdateOneRequiredWithoutAdjustmentsNestedInput = {
+  create?: Prisma.XOR<Prisma.PointPoolEventCreateWithoutAdjustmentsInput, Prisma.PointPoolEventUncheckedCreateWithoutAdjustmentsInput>
+  connectOrCreate?: Prisma.PointPoolEventCreateOrConnectWithoutAdjustmentsInput
+  upsert?: Prisma.PointPoolEventUpsertWithoutAdjustmentsInput
   connect?: Prisma.PointPoolEventWhereUniqueInput
-  update?: Prisma.XOR<Prisma.XOR<Prisma.PointPoolEventUpdateToOneWithWhereWithoutRedemptionsInput, Prisma.PointPoolEventUpdateWithoutRedemptionsInput>, Prisma.PointPoolEventUncheckedUpdateWithoutRedemptionsInput>
+  update?: Prisma.XOR<Prisma.XOR<Prisma.PointPoolEventUpdateToOneWithWhereWithoutAdjustmentsInput, Prisma.PointPoolEventUpdateWithoutAdjustmentsInput>, Prisma.PointPoolEventUncheckedUpdateWithoutAdjustmentsInput>
+}
+
+export type NullableDateTimeFieldUpdateOperationsInput = {
+  set?: Date | string | null
 }
 
 export type PointPoolEventCreateNestedOneWithoutGoalsInput = {
@@ -403,21 +407,21 @@ export type PointPoolEventUpdateOneRequiredWithoutGoalsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.PointPoolEventUpdateToOneWithWhereWithoutGoalsInput, Prisma.PointPoolEventUpdateWithoutGoalsInput>, Prisma.PointPoolEventUncheckedUpdateWithoutGoalsInput>
 }
 
-export type PointPoolEventCreateNestedOneWithoutAdjustmentsInput = {
-  create?: Prisma.XOR<Prisma.PointPoolEventCreateWithoutAdjustmentsInput, Prisma.PointPoolEventUncheckedCreateWithoutAdjustmentsInput>
-  connectOrCreate?: Prisma.PointPoolEventCreateOrConnectWithoutAdjustmentsInput
+export type PointPoolEventCreateNestedOneWithoutRedemptionsInput = {
+  create?: Prisma.XOR<Prisma.PointPoolEventCreateWithoutRedemptionsInput, Prisma.PointPoolEventUncheckedCreateWithoutRedemptionsInput>
+  connectOrCreate?: Prisma.PointPoolEventCreateOrConnectWithoutRedemptionsInput
   connect?: Prisma.PointPoolEventWhereUniqueInput
 }
 
-export type PointPoolEventUpdateOneRequiredWithoutAdjustmentsNestedInput = {
-  create?: Prisma.XOR<Prisma.PointPoolEventCreateWithoutAdjustmentsInput, Prisma.PointPoolEventUncheckedCreateWithoutAdjustmentsInput>
-  connectOrCreate?: Prisma.PointPoolEventCreateOrConnectWithoutAdjustmentsInput
-  upsert?: Prisma.PointPoolEventUpsertWithoutAdjustmentsInput
+export type PointPoolEventUpdateOneRequiredWithoutRedemptionsNestedInput = {
+  create?: Prisma.XOR<Prisma.PointPoolEventCreateWithoutRedemptionsInput, Prisma.PointPoolEventUncheckedCreateWithoutRedemptionsInput>
+  connectOrCreate?: Prisma.PointPoolEventCreateOrConnectWithoutRedemptionsInput
+  upsert?: Prisma.PointPoolEventUpsertWithoutRedemptionsInput
   connect?: Prisma.PointPoolEventWhereUniqueInput
-  update?: Prisma.XOR<Prisma.XOR<Prisma.PointPoolEventUpdateToOneWithWhereWithoutAdjustmentsInput, Prisma.PointPoolEventUpdateWithoutAdjustmentsInput>, Prisma.PointPoolEventUncheckedUpdateWithoutAdjustmentsInput>
+  update?: Prisma.XOR<Prisma.XOR<Prisma.PointPoolEventUpdateToOneWithWhereWithoutRedemptionsInput, Prisma.PointPoolEventUpdateWithoutRedemptionsInput>, Prisma.PointPoolEventUncheckedUpdateWithoutRedemptionsInput>
 }
 
-export type PointPoolEventCreateWithoutRedemptionsInput = {
+export type PointPoolEventCreateWithoutAdjustmentsInput = {
   id?: string
   name: string
   status?: string
@@ -425,11 +429,11 @@ export type PointPoolEventCreateWithoutRedemptionsInput = {
   endedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  redemptions?: Prisma.PointPoolRedemptionCreateNestedManyWithoutPointPoolEventInput
   goals?: Prisma.PointPoolGoalCreateNestedManyWithoutPointPoolEventInput
-  adjustments?: Prisma.PointPoolAdjustmentCreateNestedManyWithoutPointPoolEventInput
 }
 
-export type PointPoolEventUncheckedCreateWithoutRedemptionsInput = {
+export type PointPoolEventUncheckedCreateWithoutAdjustmentsInput = {
   id?: string
   name: string
   status?: string
@@ -437,27 +441,27 @@ export type PointPoolEventUncheckedCreateWithoutRedemptionsInput = {
   endedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  redemptions?: Prisma.PointPoolRedemptionUncheckedCreateNestedManyWithoutPointPoolEventInput
   goals?: Prisma.PointPoolGoalUncheckedCreateNestedManyWithoutPointPoolEventInput
-  adjustments?: Prisma.PointPoolAdjustmentUncheckedCreateNestedManyWithoutPointPoolEventInput
 }
 
-export type PointPoolEventCreateOrConnectWithoutRedemptionsInput = {
+export type PointPoolEventCreateOrConnectWithoutAdjustmentsInput = {
   where: Prisma.PointPoolEventWhereUniqueInput
-  create: Prisma.XOR<Prisma.PointPoolEventCreateWithoutRedemptionsInput, Prisma.PointPoolEventUncheckedCreateWithoutRedemptionsInput>
+  create: Prisma.XOR<Prisma.PointPoolEventCreateWithoutAdjustmentsInput, Prisma.PointPoolEventUncheckedCreateWithoutAdjustmentsInput>
 }
 
-export type PointPoolEventUpsertWithoutRedemptionsInput = {
-  update: Prisma.XOR<Prisma.PointPoolEventUpdateWithoutRedemptionsInput, Prisma.PointPoolEventUncheckedUpdateWithoutRedemptionsInput>
-  create: Prisma.XOR<Prisma.PointPoolEventCreateWithoutRedemptionsInput, Prisma.PointPoolEventUncheckedCreateWithoutRedemptionsInput>
+export type PointPoolEventUpsertWithoutAdjustmentsInput = {
+  update: Prisma.XOR<Prisma.PointPoolEventUpdateWithoutAdjustmentsInput, Prisma.PointPoolEventUncheckedUpdateWithoutAdjustmentsInput>
+  create: Prisma.XOR<Prisma.PointPoolEventCreateWithoutAdjustmentsInput, Prisma.PointPoolEventUncheckedCreateWithoutAdjustmentsInput>
   where?: Prisma.PointPoolEventWhereInput
 }
 
-export type PointPoolEventUpdateToOneWithWhereWithoutRedemptionsInput = {
+export type PointPoolEventUpdateToOneWithWhereWithoutAdjustmentsInput = {
   where?: Prisma.PointPoolEventWhereInput
-  data: Prisma.XOR<Prisma.PointPoolEventUpdateWithoutRedemptionsInput, Prisma.PointPoolEventUncheckedUpdateWithoutRedemptionsInput>
+  data: Prisma.XOR<Prisma.PointPoolEventUpdateWithoutAdjustmentsInput, Prisma.PointPoolEventUncheckedUpdateWithoutAdjustmentsInput>
 }
 
-export type PointPoolEventUpdateWithoutRedemptionsInput = {
+export type PointPoolEventUpdateWithoutAdjustmentsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
@@ -465,11 +469,11 @@ export type PointPoolEventUpdateWithoutRedemptionsInput = {
   endedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  redemptions?: Prisma.PointPoolRedemptionUpdateManyWithoutPointPoolEventNestedInput
   goals?: Prisma.PointPoolGoalUpdateManyWithoutPointPoolEventNestedInput
-  adjustments?: Prisma.PointPoolAdjustmentUpdateManyWithoutPointPoolEventNestedInput
 }
 
-export type PointPoolEventUncheckedUpdateWithoutRedemptionsInput = {
+export type PointPoolEventUncheckedUpdateWithoutAdjustmentsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
@@ -477,8 +481,8 @@ export type PointPoolEventUncheckedUpdateWithoutRedemptionsInput = {
   endedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  redemptions?: Prisma.PointPoolRedemptionUncheckedUpdateManyWithoutPointPoolEventNestedInput
   goals?: Prisma.PointPoolGoalUncheckedUpdateManyWithoutPointPoolEventNestedInput
-  adjustments?: Prisma.PointPoolAdjustmentUncheckedUpdateManyWithoutPointPoolEventNestedInput
 }
 
 export type PointPoolEventCreateWithoutGoalsInput = {
@@ -545,7 +549,7 @@ export type PointPoolEventUncheckedUpdateWithoutGoalsInput = {
   adjustments?: Prisma.PointPoolAdjustmentUncheckedUpdateManyWithoutPointPoolEventNestedInput
 }
 
-export type PointPoolEventCreateWithoutAdjustmentsInput = {
+export type PointPoolEventCreateWithoutRedemptionsInput = {
   id?: string
   name: string
   status?: string
@@ -553,11 +557,11 @@ export type PointPoolEventCreateWithoutAdjustmentsInput = {
   endedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
-  redemptions?: Prisma.PointPoolRedemptionCreateNestedManyWithoutPointPoolEventInput
   goals?: Prisma.PointPoolGoalCreateNestedManyWithoutPointPoolEventInput
+  adjustments?: Prisma.PointPoolAdjustmentCreateNestedManyWithoutPointPoolEventInput
 }
 
-export type PointPoolEventUncheckedCreateWithoutAdjustmentsInput = {
+export type PointPoolEventUncheckedCreateWithoutRedemptionsInput = {
   id?: string
   name: string
   status?: string
@@ -565,27 +569,27 @@ export type PointPoolEventUncheckedCreateWithoutAdjustmentsInput = {
   endedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
-  redemptions?: Prisma.PointPoolRedemptionUncheckedCreateNestedManyWithoutPointPoolEventInput
   goals?: Prisma.PointPoolGoalUncheckedCreateNestedManyWithoutPointPoolEventInput
+  adjustments?: Prisma.PointPoolAdjustmentUncheckedCreateNestedManyWithoutPointPoolEventInput
 }
 
-export type PointPoolEventCreateOrConnectWithoutAdjustmentsInput = {
+export type PointPoolEventCreateOrConnectWithoutRedemptionsInput = {
   where: Prisma.PointPoolEventWhereUniqueInput
-  create: Prisma.XOR<Prisma.PointPoolEventCreateWithoutAdjustmentsInput, Prisma.PointPoolEventUncheckedCreateWithoutAdjustmentsInput>
+  create: Prisma.XOR<Prisma.PointPoolEventCreateWithoutRedemptionsInput, Prisma.PointPoolEventUncheckedCreateWithoutRedemptionsInput>
 }
 
-export type PointPoolEventUpsertWithoutAdjustmentsInput = {
-  update: Prisma.XOR<Prisma.PointPoolEventUpdateWithoutAdjustmentsInput, Prisma.PointPoolEventUncheckedUpdateWithoutAdjustmentsInput>
-  create: Prisma.XOR<Prisma.PointPoolEventCreateWithoutAdjustmentsInput, Prisma.PointPoolEventUncheckedCreateWithoutAdjustmentsInput>
+export type PointPoolEventUpsertWithoutRedemptionsInput = {
+  update: Prisma.XOR<Prisma.PointPoolEventUpdateWithoutRedemptionsInput, Prisma.PointPoolEventUncheckedUpdateWithoutRedemptionsInput>
+  create: Prisma.XOR<Prisma.PointPoolEventCreateWithoutRedemptionsInput, Prisma.PointPoolEventUncheckedCreateWithoutRedemptionsInput>
   where?: Prisma.PointPoolEventWhereInput
 }
 
-export type PointPoolEventUpdateToOneWithWhereWithoutAdjustmentsInput = {
+export type PointPoolEventUpdateToOneWithWhereWithoutRedemptionsInput = {
   where?: Prisma.PointPoolEventWhereInput
-  data: Prisma.XOR<Prisma.PointPoolEventUpdateWithoutAdjustmentsInput, Prisma.PointPoolEventUncheckedUpdateWithoutAdjustmentsInput>
+  data: Prisma.XOR<Prisma.PointPoolEventUpdateWithoutRedemptionsInput, Prisma.PointPoolEventUncheckedUpdateWithoutRedemptionsInput>
 }
 
-export type PointPoolEventUpdateWithoutAdjustmentsInput = {
+export type PointPoolEventUpdateWithoutRedemptionsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
@@ -593,11 +597,11 @@ export type PointPoolEventUpdateWithoutAdjustmentsInput = {
   endedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  redemptions?: Prisma.PointPoolRedemptionUpdateManyWithoutPointPoolEventNestedInput
   goals?: Prisma.PointPoolGoalUpdateManyWithoutPointPoolEventNestedInput
+  adjustments?: Prisma.PointPoolAdjustmentUpdateManyWithoutPointPoolEventNestedInput
 }
 
-export type PointPoolEventUncheckedUpdateWithoutAdjustmentsInput = {
+export type PointPoolEventUncheckedUpdateWithoutRedemptionsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
@@ -605,8 +609,8 @@ export type PointPoolEventUncheckedUpdateWithoutAdjustmentsInput = {
   endedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  redemptions?: Prisma.PointPoolRedemptionUncheckedUpdateManyWithoutPointPoolEventNestedInput
   goals?: Prisma.PointPoolGoalUncheckedUpdateManyWithoutPointPoolEventNestedInput
+  adjustments?: Prisma.PointPoolAdjustmentUncheckedUpdateManyWithoutPointPoolEventNestedInput
 }
 
 
@@ -1394,7 +1398,6 @@ export type PointPoolEventCreateManyArgs<ExtArgs extends runtime.Types.Extension
    * The data used to create many PointPoolEvents.
    */
   data: Prisma.PointPoolEventCreateManyInput | Prisma.PointPoolEventCreateManyInput[]
-  skipDuplicates?: boolean
 }
 
 /**
@@ -1413,7 +1416,6 @@ export type PointPoolEventCreateManyAndReturnArgs<ExtArgs extends runtime.Types.
    * The data used to create many PointPoolEvents.
    */
   data: Prisma.PointPoolEventCreateManyInput | Prisma.PointPoolEventCreateManyInput[]
-  skipDuplicates?: boolean
 }
 
 /**

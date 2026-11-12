@@ -18,15 +18,40 @@ export { Prisma }
 export * as $Enums from './enums.js'
 export * from './enums.js';
 /**
- * Model Stream
+ * Model ChatCommand
  * 
  */
-export type Stream = Prisma.StreamModel
+export type ChatCommand = Prisma.ChatCommandModel
 /**
  * Model FirstRedemption
  * 
  */
 export type FirstRedemption = Prisma.FirstRedemptionModel
+/**
+ * Model PointPoolAdjustment
+ * 
+ */
+export type PointPoolAdjustment = Prisma.PointPoolAdjustmentModel
+/**
+ * Model PointPoolEvent
+ * 
+ */
+export type PointPoolEvent = Prisma.PointPoolEventModel
+/**
+ * Model PointPoolGoal
+ * 
+ */
+export type PointPoolGoal = Prisma.PointPoolGoalModel
+/**
+ * Model PointPoolRedemption
+ * 
+ */
+export type PointPoolRedemption = Prisma.PointPoolRedemptionModel
+/**
+ * Model Stream
+ * 
+ */
+export type Stream = Prisma.StreamModel
 /**
  * Model StreamEvent
  * 
@@ -38,27 +63,7 @@ export type StreamEvent = Prisma.StreamEventModel
  */
 export type TwitchAccount = Prisma.TwitchAccountModel
 /**
- * Model ChatCommand
+ * Model NeonMigrationHistory
  * 
  */
-export type ChatCommand = Prisma.ChatCommandModel
-/**
- * Model PointPoolEvent
- * 
- */
-export type PointPoolEvent = Prisma.PointPoolEventModel
-/**
- * Model PointPoolRedemption
- * 
- */
-export type PointPoolRedemption = Prisma.PointPoolRedemptionModel
-/**
- * Model PointPoolGoal
- * 
- */
-export type PointPoolGoal = Prisma.PointPoolGoalModel
-/**
- * Model PointPoolAdjustment
- * 
- */
-export type PointPoolAdjustment = Prisma.PointPoolAdjustmentModel
+export type NeonMigrationHistory = Prisma.NeonMigrationHistoryModel

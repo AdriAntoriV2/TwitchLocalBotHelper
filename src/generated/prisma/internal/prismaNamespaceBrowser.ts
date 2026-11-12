@@ -51,15 +51,16 @@ export const AnyNull = runtime.AnyNull
 
 
 export const ModelName = {
-  Stream: 'Stream',
+  ChatCommand: 'ChatCommand',
   FirstRedemption: 'FirstRedemption',
+  PointPoolAdjustment: 'PointPoolAdjustment',
+  PointPoolEvent: 'PointPoolEvent',
+  PointPoolGoal: 'PointPoolGoal',
+  PointPoolRedemption: 'PointPoolRedemption',
+  Stream: 'Stream',
   StreamEvent: 'StreamEvent',
   TwitchAccount: 'TwitchAccount',
-  ChatCommand: 'ChatCommand',
-  PointPoolEvent: 'PointPoolEvent',
-  PointPoolRedemption: 'PointPoolRedemption',
-  PointPoolGoal: 'PointPoolGoal',
-  PointPoolAdjustment: 'PointPoolAdjustment'
+  NeonMigrationHistory: 'NeonMigrationHistory'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -69,25 +70,23 @@ export type ModelName = (typeof ModelName)[keyof typeof ModelName]
  */
 
 export const TransactionIsolationLevel = runtime.makeStrictEnum({
-  ReadUncommitted: 'ReadUncommitted',
-  ReadCommitted: 'ReadCommitted',
-  RepeatableRead: 'RepeatableRead',
   Serializable: 'Serializable'
 } as const)
 
 export type TransactionIsolationLevel = (typeof TransactionIsolationLevel)[keyof typeof TransactionIsolationLevel]
 
 
-export const StreamScalarFieldEnum = {
+export const ChatCommandScalarFieldEnum = {
   id: 'id',
-  title: 'title',
-  startedAt: 'startedAt',
-  endedAt: 'endedAt',
+  name: 'name',
+  enabled: 'enabled',
+  cooldownSeconds: 'cooldownSeconds',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  response: 'response'
 } as const
 
-export type StreamScalarFieldEnum = (typeof StreamScalarFieldEnum)[keyof typeof StreamScalarFieldEnum]
+export type ChatCommandScalarFieldEnum = (typeof ChatCommandScalarFieldEnum)[keyof typeof ChatCommandScalarFieldEnum]
 
 
 export const FirstRedemptionScalarFieldEnum = {
@@ -104,46 +103,16 @@ export const FirstRedemptionScalarFieldEnum = {
 export type FirstRedemptionScalarFieldEnum = (typeof FirstRedemptionScalarFieldEnum)[keyof typeof FirstRedemptionScalarFieldEnum]
 
 
-export const StreamEventScalarFieldEnum = {
+export const PointPoolAdjustmentScalarFieldEnum = {
   id: 'id',
-  streamId: 'streamId',
-  externalId: 'externalId',
-  type: 'type',
-  payload: 'payload',
-  createdAt: 'createdAt'
-} as const
-
-export type StreamEventScalarFieldEnum = (typeof StreamEventScalarFieldEnum)[keyof typeof StreamEventScalarFieldEnum]
-
-
-export const TwitchAccountScalarFieldEnum = {
-  id: 'id',
-  twitchUserId: 'twitchUserId',
-  login: 'login',
-  displayName: 'displayName',
-  accessTokenEncrypted: 'accessTokenEncrypted',
-  refreshTokenEncrypted: 'refreshTokenEncrypted',
-  accessTokenExpiresAt: 'accessTokenExpiresAt',
-  tokenVersion: 'tokenVersion',
-  scopes: 'scopes',
-  connectedAt: 'connectedAt',
-  updatedAt: 'updatedAt'
-} as const
-
-export type TwitchAccountScalarFieldEnum = (typeof TwitchAccountScalarFieldEnum)[keyof typeof TwitchAccountScalarFieldEnum]
-
-
-export const ChatCommandScalarFieldEnum = {
-  id: 'id',
-  name: 'name',
-  response: 'response',
-  enabled: 'enabled',
-  cooldownSeconds: 'cooldownSeconds',
+  amount: 'amount',
+  attribution: 'attribution',
+  reason: 'reason',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  pointPoolEventId: 'pointPoolEventId'
 } as const
 
-export type ChatCommandScalarFieldEnum = (typeof ChatCommandScalarFieldEnum)[keyof typeof ChatCommandScalarFieldEnum]
+export type PointPoolAdjustmentScalarFieldEnum = (typeof PointPoolAdjustmentScalarFieldEnum)[keyof typeof PointPoolAdjustmentScalarFieldEnum]
 
 
 export const PointPoolEventScalarFieldEnum = {
@@ -157,6 +126,17 @@ export const PointPoolEventScalarFieldEnum = {
 } as const
 
 export type PointPoolEventScalarFieldEnum = (typeof PointPoolEventScalarFieldEnum)[keyof typeof PointPoolEventScalarFieldEnum]
+
+
+export const PointPoolGoalScalarFieldEnum = {
+  id: 'id',
+  targetPoints: 'targetPoints',
+  description: 'description',
+  createdAt: 'createdAt',
+  pointPoolEventId: 'pointPoolEventId'
+} as const
+
+export type PointPoolGoalScalarFieldEnum = (typeof PointPoolGoalScalarFieldEnum)[keyof typeof PointPoolGoalScalarFieldEnum]
 
 
 export const PointPoolRedemptionScalarFieldEnum = {
@@ -176,27 +156,59 @@ export const PointPoolRedemptionScalarFieldEnum = {
 export type PointPoolRedemptionScalarFieldEnum = (typeof PointPoolRedemptionScalarFieldEnum)[keyof typeof PointPoolRedemptionScalarFieldEnum]
 
 
-export const PointPoolGoalScalarFieldEnum = {
+export const StreamScalarFieldEnum = {
   id: 'id',
-  targetPoints: 'targetPoints',
-  description: 'description',
+  title: 'title',
+  startedAt: 'startedAt',
+  endedAt: 'endedAt',
   createdAt: 'createdAt',
-  pointPoolEventId: 'pointPoolEventId'
+  updatedAt: 'updatedAt'
 } as const
 
-export type PointPoolGoalScalarFieldEnum = (typeof PointPoolGoalScalarFieldEnum)[keyof typeof PointPoolGoalScalarFieldEnum]
+export type StreamScalarFieldEnum = (typeof StreamScalarFieldEnum)[keyof typeof StreamScalarFieldEnum]
 
 
-export const PointPoolAdjustmentScalarFieldEnum = {
+export const StreamEventScalarFieldEnum = {
   id: 'id',
-  amount: 'amount',
-  attribution: 'attribution',
-  reason: 'reason',
+  streamId: 'streamId',
+  type: 'type',
+  payload: 'payload',
   createdAt: 'createdAt',
-  pointPoolEventId: 'pointPoolEventId'
+  externalId: 'externalId'
 } as const
 
-export type PointPoolAdjustmentScalarFieldEnum = (typeof PointPoolAdjustmentScalarFieldEnum)[keyof typeof PointPoolAdjustmentScalarFieldEnum]
+export type StreamEventScalarFieldEnum = (typeof StreamEventScalarFieldEnum)[keyof typeof StreamEventScalarFieldEnum]
+
+
+export const TwitchAccountScalarFieldEnum = {
+  id: 'id',
+  twitchUserId: 'twitchUserId',
+  login: 'login',
+  displayName: 'displayName',
+  accessTokenEncrypted: 'accessTokenEncrypted',
+  refreshTokenEncrypted: 'refreshTokenEncrypted',
+  accessTokenExpiresAt: 'accessTokenExpiresAt',
+  scopes: 'scopes',
+  connectedAt: 'connectedAt',
+  updatedAt: 'updatedAt',
+  tokenVersion: 'tokenVersion'
+} as const
+
+export type TwitchAccountScalarFieldEnum = (typeof TwitchAccountScalarFieldEnum)[keyof typeof TwitchAccountScalarFieldEnum]
+
+
+export const NeonMigrationHistoryScalarFieldEnum = {
+  id: 'id',
+  checksum: 'checksum',
+  finished_at: 'finished_at',
+  migration_name: 'migration_name',
+  logs: 'logs',
+  rolled_back_at: 'rolled_back_at',
+  started_at: 'started_at',
+  applied_steps_count: 'applied_steps_count'
+} as const
+
+export type NeonMigrationHistoryScalarFieldEnum = (typeof NeonMigrationHistoryScalarFieldEnum)[keyof typeof NeonMigrationHistoryScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -214,12 +226,12 @@ export const JsonNullValueInput = {
 export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
 
 
-export const QueryMode = {
-  default: 'default',
-  insensitive: 'insensitive'
+export const NullableJsonNullValueInput = {
+  DbNull: DbNull,
+  JsonNull: JsonNull
 } as const
 
-export type QueryMode = (typeof QueryMode)[keyof typeof QueryMode]
+export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
 
 
 export const NullsOrder = {
@@ -237,4 +249,12 @@ export const JsonNullValueFilter = {
 } as const
 
 export type JsonNullValueFilter = (typeof JsonNullValueFilter)[keyof typeof JsonNullValueFilter]
+
+
+export const QueryMode = {
+  default: 'default',
+  insensitive: 'insensitive'
+} as const
+
+export type QueryMode = (typeof QueryMode)[keyof typeof QueryMode]
 

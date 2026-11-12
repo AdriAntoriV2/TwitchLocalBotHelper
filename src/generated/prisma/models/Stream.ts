@@ -314,6 +314,11 @@ export type StreamUncheckedUpdateManyInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
+export type StreamScalarRelationFilter = {
+  is?: Prisma.StreamWhereInput
+  isNot?: Prisma.StreamWhereInput
+}
+
 export type StreamCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   title?: Prisma.SortOrder
@@ -339,23 +344,6 @@ export type StreamMinOrderByAggregateInput = {
   endedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
-}
-
-export type StreamScalarRelationFilter = {
-  is?: Prisma.StreamWhereInput
-  isNot?: Prisma.StreamWhereInput
-}
-
-export type StringFieldUpdateOperationsInput = {
-  set?: string
-}
-
-export type DateTimeFieldUpdateOperationsInput = {
-  set?: Date | string
-}
-
-export type NullableDateTimeFieldUpdateOperationsInput = {
-  set?: Date | string | null
 }
 
 export type StreamCreateNestedOneWithoutFirstRedemptionInput = {
@@ -1255,7 +1243,6 @@ export type StreamCreateManyArgs<ExtArgs extends runtime.Types.Extensions.Intern
    * The data used to create many Streams.
    */
   data: Prisma.StreamCreateManyInput | Prisma.StreamCreateManyInput[]
-  skipDuplicates?: boolean
 }
 
 /**
@@ -1274,7 +1261,6 @@ export type StreamCreateManyAndReturnArgs<ExtArgs extends runtime.Types.Extensio
    * The data used to create many Streams.
    */
   data: Prisma.StreamCreateManyInput | Prisma.StreamCreateManyInput[]
-  skipDuplicates?: boolean
 }
 
 /**

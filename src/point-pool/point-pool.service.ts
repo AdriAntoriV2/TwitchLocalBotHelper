@@ -357,9 +357,12 @@ export class PointPoolService {
             return { recorded: false, reason: 'no_active_pool' };
         }
 
-        // A unique Twitch redemption ID plus skipDuplicates makes delivery idempotent.
-        const result = await this.prisma.pointPoolRedemption.createMany({
-            data: {
+        // Handle the unique-key conflict directly because this database provider
+        // does not support createMany's skipDuplicates option.
+        let redemption;
+        try {
+            redemption = await this.prisma.pointPoolRedemption.create({
+                data: {
                 twitchRedemptionId: redemptionId,
                 userId,
                 userLogin,
@@ -369,13 +372,20 @@ export class PointPoolService {
                 pointsCost: reward.cost,
                 redeemedAt: redeemedAtDate,
                 pointPoolEventId: pool.id,
-            },
-            skipDuplicates: true,
-        });
-
-        if (result.count === 0) {
+                },
+            });
+        } catch (error: unknown) {
+            if (
+                typeof error === 'object' &&
+                error !== null &&
+                'code' in error &&
+                error.code === 'P2002'
+            ) {
             this.logger.debug(`Ignoring duplicate redemption ${redemptionId}`);
             return { recorded: false, reason: 'duplicate' };
+            }
+
+            throw error;
         }
 
         this.logger.log(

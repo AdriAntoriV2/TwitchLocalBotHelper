@@ -22,9 +22,9 @@
     "test:e2e": "vitest run --config ./vitest.config.e2e.ts",
     "postinstall": "prisma skills sync || exit 0",
     "pretest": "npm run prisma:twitch2:generate",
-    "prisma:twitch2:generate": "prisma generate --config prisma.twitch2.config.ts",
-    "prisma:twitch2:migrate": "prisma migrate dev --config prisma.twitch2.config.ts",
-    "prisma:twitch2:deploy": "prisma migrate deploy --config prisma.twitch2.config.ts"
+    "prisma:twitch2:generate": "prisma generate --config prisma.config.ts",
+    "prisma:twitch2:migrate": "prisma migrate dev --config prisma.config.ts",
+    "prisma:twitch2:deploy": "prisma migrate deploy --config prisma.config.ts"
   },
   "dependencies": {
     "@nestjs/axios": "^12.0.1",

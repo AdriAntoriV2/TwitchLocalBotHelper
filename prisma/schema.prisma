@@ -1,6 +1,6 @@
 generator client {
   provider = "prisma-client"
-  output   = "../../src/generated/twitch2-prisma"
+  output   = "../src/generated/prisma"
 }
 
 datasource db {
