@@ -14,6 +14,7 @@ import {
   type TwitchValidatedToken,
 } from 'streamops-twitch-connector';
 import { SecretEncryptionService } from '../common/security/secret-encryption.service.js';
+import { ChatOverlayService } from '../chat-overlay/chat-overlay.service.js';
 import { Twitch2PrismaService } from './twitch2-prisma.service.js';
 import { Twitch2TokenStore } from './twitch2-token.store.js';
 
@@ -50,6 +51,23 @@ interface TwitchStreamsResponse {
   }>;
 }
 
+interface TwitchEmote {
+  id: string;
+  name: string;
+  format: string[];
+}
+
+interface TwitchEmotesResponse {
+  data?: Array<{
+    id?: string;
+    name?: string;
+    format?: string[];
+  }>;
+  pagination?: {
+    cursor?: string;
+  };
+}
+
 export interface Twitch2ShoutoutInfo {
   displayName: string;
   login: string;
@@ -75,6 +93,7 @@ export class Twitch2ConnectionService implements OnModuleInit, OnModuleDestroy {
     private readonly tokenStore: Twitch2TokenStore,
     private readonly prisma: Twitch2PrismaService,
     private readonly encryption: SecretEncryptionService,
+    private readonly chatOverlay: ChatOverlayService,
   ) {
     this.client = new TwitchClient({
       clientId: config.getOrThrow<string>('twitch.clientId'),
@@ -177,6 +196,10 @@ export class Twitch2ConnectionService implements OnModuleInit, OnModuleDestroy {
       this.authenticatedUserId = authenticatedUserId;
       this.status = 'connected';
       this.loginError = null;
+
+      await this.client.connectEventSub();
+      await this.refreshChatEmotes(authenticatedUserId);
+
       this.logger.log(`Twitch connected as user ${authenticatedUserId}.`);
     } catch (error) {
       if (this.isAuthorizationError(error)) {
@@ -188,6 +211,10 @@ export class Twitch2ConnectionService implements OnModuleInit, OnModuleDestroy {
   }
 
   getAuthenticatedUserId(): string | null {
+    return this.authenticatedUserId;
+  }
+
+  getBroadcasterUserId(): string | null {
     return this.authenticatedUserId;
   }
 
@@ -243,6 +270,16 @@ export class Twitch2ConnectionService implements OnModuleInit, OnModuleDestroy {
     this.loginAbortController?.abort();
     await this.loginPromise;
     this.removeAuthErrorListener();
+
+    try {
+      await this.client.disconnectEventSub();
+    } catch (error) {
+      this.logger.error(
+        'Failed to stop Twitch EventSub.',
+        error instanceof Error ? error.stack : String(error),
+      );
+    }
+
     this.client.tokens.dispose();
   }
 
@@ -315,6 +352,94 @@ export class Twitch2ConnectionService implements OnModuleInit, OnModuleDestroy {
   private requireLogin(): void {
     this.status = 'login-required';
     this.authenticatedUserId = null;
+  }
+
+  private async refreshChatEmotes(broadcasterId: string): Promise<void> {
+    const fetchEmotes = async (endpoint: string): Promise<TwitchEmote[]> => {
+      const results: TwitchEmote[] = [];
+      let cursor: string | undefined;
+
+      do {
+        const url = new URL(endpoint, 'https://api.twitch.tv');
+
+        if (cursor) {
+          url.searchParams.set('after', cursor);
+        }
+
+        let body: TwitchEmotesResponse;
+
+        try {
+          body = await this.client.api.get<TwitchEmotesResponse>(
+            `${url.pathname.replace('/helix', '')}${url.search}`,
+          );
+        } catch (error) {
+          if (this.isAuthorizationError(error)) {
+            this.requireLogin();
+            throw error;
+          }
+
+          this.logger.warn(
+            `Twitch emote lookup failed: ${
+              error instanceof Error ? error.message : String(error)
+            }`,
+          );
+          break;
+        }
+
+        for (const emote of body.data ?? []) {
+          if (
+            typeof emote.id === 'string' &&
+            emote.id.length > 0 &&
+            typeof emote.name === 'string' &&
+            emote.name.length > 0
+          ) {
+            results.push({
+              id: emote.id,
+              name: emote.name,
+              format: Array.isArray(emote.format) ? emote.format : ['static'],
+            });
+          }
+        }
+
+        cursor = body.pagination?.cursor;
+      } while (cursor && this.isReady);
+
+      return results;
+    };
+
+    const channelParams = new URLSearchParams({
+      broadcaster_id: broadcasterId,
+    });
+    const [globalEmotes, channelEmotes] = await Promise.all([
+      fetchEmotes('/helix/chat/emotes/global'),
+      fetchEmotes(`/helix/chat/emotes?${channelParams.toString()}`),
+    ]);
+
+    if (!this.isReady) {
+      return;
+    }
+
+    const emotes: Record<string, { id: string; format: 'static' | 'animated' }> =
+      {};
+
+    for (const emote of [...globalEmotes, ...channelEmotes]) {
+      emotes[emote.name] = {
+        id: emote.id,
+        format: emote.format.includes('animated') ? 'animated' : 'static',
+      };
+    }
+
+    if (Object.keys(emotes).length === 0) {
+      this.logger.warn(
+        'No Twitch emotes were loaded; keeping the existing cache.',
+      );
+      return;
+    }
+
+    await this.chatOverlay.setEmoteMap(emotes);
+    this.logger.log(
+      `Loaded ${globalEmotes.length} global and ${channelEmotes.length} channel emotes.`,
+    );
   }
 
   private getUserId(token: TwitchValidatedToken): string {

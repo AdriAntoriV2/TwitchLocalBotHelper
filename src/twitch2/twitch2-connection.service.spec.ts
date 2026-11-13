@@ -5,6 +5,7 @@ import type { TwitchTokens } from 'streamops-twitch-connector';
 import { Twitch2ConnectionService } from './twitch2-connection.service.js';
 import type { Twitch2PrismaService } from './twitch2-prisma.service.js';
 import type { Twitch2TokenStore } from './twitch2-token.store.js';
+import type { ChatOverlayService } from '../chat-overlay/chat-overlay.service.js';
 
 const connectorMocks = vi.hoisted(() => ({
   startLogin: vi.fn(),
@@ -13,6 +14,8 @@ const connectorMocks = vi.hoisted(() => ({
   onAuthError: vi.fn(),
   dispose: vi.fn(),
   apiGet: vi.fn(),
+  connectEventSub: vi.fn(),
+  disconnectEventSub: vi.fn(),
 }));
 
 vi.mock('streamops-twitch-connector', () => ({
@@ -26,6 +29,8 @@ vi.mock('streamops-twitch-connector', () => ({
         dispose: connectorMocks.dispose,
       },
       api: { get: connectorMocks.apiGet },
+      connectEventSub: connectorMocks.connectEventSub,
+      disconnectEventSub: connectorMocks.disconnectEventSub,
     };
   }),
   TwitchError: class TwitchError extends Error {},
@@ -75,10 +80,17 @@ describe('Twitch2ConnectionService', () => {
       await tokenStore.save(tokens);
     });
     connectorMocks.getValidatedToken.mockResolvedValue({ user_id: '123' });
-    connectorMocks.apiGet.mockResolvedValue({
-      data: [{ id: '123', login: 'streamer', display_name: 'Streamer' }],
-    });
     connectorMocks.onAuthError.mockReturnValue(vi.fn());
+    connectorMocks.connectEventSub.mockResolvedValue(undefined);
+    connectorMocks.disconnectEventSub.mockResolvedValue(undefined);
+    connectorMocks.apiGet
+      .mockResolvedValueOnce({
+        data: [{ id: '123', login: 'streamer', display_name: 'Streamer' }],
+      })
+      .mockResolvedValue({
+        data: [],
+        pagination: {},
+      });
 
     const service = new Twitch2ConnectionService(
       {
@@ -88,6 +100,7 @@ describe('Twitch2ConnectionService', () => {
       tokenStore as unknown as Twitch2TokenStore,
       prisma as unknown as Twitch2PrismaService,
       encryption as unknown as SecretEncryptionService,
+      { setEmoteMap: vi.fn() } as unknown as ChatOverlayService,
     );
 
     await expect(service.startDeviceLogin()).resolves.toEqual(login);
